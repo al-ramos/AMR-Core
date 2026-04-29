@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using RDS.Core.Application.Interfaces;
 using RDS.Core.Domain.Entities;
+using RDS.Core.Domain.Enums;
 using RDS.Core.Infrastructure.Data;
 
 namespace RDS.Core.Infrastructure.Data.Repositories;
@@ -18,6 +19,21 @@ public class PedidoVendaRepository(RdsCoreDbContext ctx) : IPedidoVendaRepositor
             .Where(p => p.EmpresaId == empresaId)
             .OrderByDescending(p => p.DataEmissao)
             .ToListAsync(ct);
+
+    public async Task<IReadOnlyList<PedidoVenda>> ListarPorEmpresaAsync(int empresaId, string? status, CancellationToken ct = default)
+    {
+        StatusPedidoVenda? statusEnum = null;
+
+        if (status is not null && Enum.TryParse<StatusPedidoVenda>(status, ignoreCase: true, out var parsed))
+            statusEnum = parsed;
+
+        return await ctx.PedidosVenda
+            .Include(p => p.Itens).ThenInclude(i => i.Produto)
+            .Where(p => p.EmpresaId == empresaId &&
+                        (statusEnum == null || p.Status == statusEnum))
+            .OrderByDescending(p => p.DataEmissao)
+            .ToListAsync(ct);
+    }
 
     public async Task<IReadOnlyList<PedidoVenda>> ListarPorClienteAsync(int clienteId, CancellationToken ct = default) =>
         await ctx.PedidosVenda
