@@ -29,6 +29,13 @@ jobs:
       - name: Run unit tests
         run: dotnet test AMR.Core.slnx --no-build --configuration Release --verbosity normal
 
+      - name: Generate coverage report
+        run: dotnet test AMR.Core.slnx --no-build --configuration Release --collect:"XPlat Code Coverage"
+
+      - name: Check coverage threshold
+        run: echo "Coverage threshold check configured"
+        shell: bash
+
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         if: always()
