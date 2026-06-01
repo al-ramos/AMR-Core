@@ -26,20 +26,34 @@ jobs:
       - name: Build
         run: dotnet build AMR.Core.slnx --no-restore --configuration Release
 
-      - name: Run unit tests
-        run: dotnet test AMR.Core.slnx --no-build --configuration Release --verbosity normal
+      - name: Run unit tests + coverage
+        run: |
+          dotnet test AMR.Core.slnx \
+            --no-build \
+            --configuration Release \
+            --verbosity normal \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./TestResults
 
-      - name: Generate coverage report
-        run: dotnet test AMR.Core.slnx --no-build --configuration Release --collect:"XPlat Code Coverage"
+      - name: Install ReportGenerator
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
 
-      - name: Check coverage threshold
-        run: echo "Coverage threshold check configured"
-        shell: bash
+      - name: Generate coverage summary
+        if: always()
+        run: |
+          reportgenerator \
+            -reports:"./TestResults/**/coverage.cobertura.xml" \
+            -targetdir:"./TestResults/CoverageReport" \
+            -reporttypes:"MarkdownSummaryGithub;Cobertura" \
+            -verbosity:Warning
+          cat ./TestResults/CoverageReport/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: coverage
-          path: "**/TestResults/**/coverage.cobertura.xml"
-          retention-days: 7
+          path: |
+            **/TestResults/**/coverage.cobertura.xml
+            TestResults/CoverageReport/
+          retention-days: 14

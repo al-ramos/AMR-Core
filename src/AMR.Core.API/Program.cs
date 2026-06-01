@@ -1,5 +1,7 @@
 using MediatR;
 using AMR.Core.Infrastructure;
+using AMR.Core.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,6 +31,15 @@ builder.Services.AddCors(opts =>
               .AllowAnyHeader()));
 
 var app = builder.Build();
+
+// Auto-migrate + Seed
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AmrCoreDbContext>();
+    db.Database.Migrate();
+    await AmrCoreSeed.AplicarAsync(db);
+}
+
 
 app.UseSwagger();
 app.UseSwaggerUI();

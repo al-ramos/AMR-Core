@@ -9,6 +9,13 @@ namespace AMR.Core.API.Controllers;
 [Route("api/[controller]")]
 public class PedidoCompraController(IMediator mediator) : ControllerBase
 {
+    [HttpGet]
+    public async Task<IActionResult> Listar([FromQuery] int empresaId, [FromQuery] string? status, CancellationToken ct)
+    {
+        var result = await mediator.Send(new ListarPedidosCompraQuery(empresaId, status), ct);
+        return result.Sucesso ? Ok(result.Valor) : BadRequest(result.Erro);
+    }
+
     [HttpGet("{id:int}")]
     public async Task<IActionResult> Obter(int id, CancellationToken ct)
     {

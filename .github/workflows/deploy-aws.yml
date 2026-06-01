@@ -1,0 +1,175 @@
+name: Deploy AWS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  AWS_REGION:      sa-east-1
+  AWS_ACCOUNT_ID:  474874558993
+  ECS_CLUSTER:     amr-system
+  ECS_API_SERVICE: amr-core-api
+  ECS_WEB_SERVICE: amr-core-web
+  ECR_API_REPO:    amr-core-api
+  ECR_WEB_REPO:    amr-core-web
+  ALB_PORT:        8081   # listener do Core no ALB unificado
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Job 1 — Build & Push das imagens Docker para o ECR
+  # ─────────────────────────────────────────────────────────────────────────────
+  build-push:
+    name: Build & Push
+    runs-on: ubuntu-latest
+
+    outputs:
+      image_tag: ${{ steps.tag.outputs.tag }}
+      ecr_api:   ${{ steps.ecr.outputs.api_url }}
+      ecr_web:   ${{ steps.ecr.outputs.web_url }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar credenciais AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ env.AWS_REGION }}
+
+      - name: Login no ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Definir tag da imagem
+        id: tag
+        run: echo "tag=${GITHUB_SHA::8}" >> $GITHUB_OUTPUT
+
+      - name: Montar URLs ECR
+        id: ecr
+        run: |
+          BASE=${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+          echo "api_url=$BASE/${{ env.ECR_API_REPO }}" >> $GITHUB_OUTPUT
+          echo "web_url=$BASE/${{ env.ECR_WEB_REPO }}" >> $GITHUB_OUTPUT
+
+      - name: Build e Push — API
+        env:
+          TAG:     ${{ steps.tag.outputs.tag }}
+          ECR_URL: ${{ steps.ecr.outputs.api_url }}
+        run: |
+          docker build -t $ECR_URL:$TAG -t $ECR_URL:latest .
+          docker push $ECR_URL:$TAG
+          docker push $ECR_URL:latest
+
+      - name: Build e Push — Web
+        env:
+          TAG:     ${{ steps.tag.outputs.tag }}
+          ECR_URL: ${{ steps.ecr.outputs.web_url }}
+        run: |
+          docker build -t $ECR_URL:$TAG -t $ECR_URL:latest ./frontend
+          docker push $ECR_URL:$TAG
+          docker push $ECR_URL:latest
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Job 2 — Deploy no ECS Fargate
+  # ─────────────────────────────────────────────────────────────────────────────
+  deploy:
+    name: Deploy ECS
+    runs-on: ubuntu-latest
+    needs: build-push
+
+    steps:
+      - name: Configurar credenciais AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ env.AWS_REGION }}
+
+      - name: Atualizar task definition — API
+        run: |
+          TASK_DEF=$(aws ecs describe-task-definition \
+            --task-definition ${{ env.ECS_API_SERVICE }} \
+            --query taskDefinition --output json)
+
+          NEW_IMAGE="${{ needs.build-push.outputs.ecr_api }}:${{ needs.build-push.outputs.image_tag }}"
+
+          NEW_TASK=$(echo $TASK_DEF | \
+            jq --arg img "$NEW_IMAGE" \
+              '.containerDefinitions[0].image = $img
+               | del(.taskDefinitionArn, .revision, .status, .requiresAttributes,
+                     .compatibilities, .registeredAt, .registeredBy)')
+
+          aws ecs register-task-definition \
+            --cli-input-json "$NEW_TASK" \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text
+
+      - name: Atualizar task definition — Web
+        run: |
+          TASK_DEF=$(aws ecs describe-task-definition \
+            --task-definition ${{ env.ECS_WEB_SERVICE }} \
+            --query taskDefinition --output json)
+
+          NEW_IMAGE="${{ needs.build-push.outputs.ecr_web }}:${{ needs.build-push.outputs.image_tag }}"
+
+          NEW_TASK=$(echo $TASK_DEF | \
+            jq --arg img "$NEW_IMAGE" \
+              '.containerDefinitions[0].image = $img
+               | del(.taskDefinitionArn, .revision, .status, .requiresAttributes,
+                     .compatibilities, .registeredAt, .registeredBy)')
+
+          aws ecs register-task-definition \
+            --cli-input-json "$NEW_TASK" \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text
+
+      - name: Force new deployment — API
+        run: |
+          aws ecs update-service \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --service ${{ env.ECS_API_SERVICE }} \
+            --force-new-deployment \
+            --output text
+
+      - name: Force new deployment — Web
+        run: |
+          aws ecs update-service \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --service ${{ env.ECS_WEB_SERVICE }} \
+            --force-new-deployment \
+            --output text
+
+      - name: Aguardar estabilização dos serviços ECS
+        run: |
+          echo "⏳ Aguardando API estabilizar..."
+          aws ecs wait services-stable \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --services ${{ env.ECS_API_SERVICE }}
+
+          echo "⏳ Aguardando Web estabilizar..."
+          aws ecs wait services-stable \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --services ${{ env.ECS_WEB_SERVICE }}
+
+      - name: Health check da aplicação
+        run: |
+          ALB_DNS=$(aws elbv2 describe-load-balancers \
+            --names amr-system \
+            --query 'LoadBalancers[0].DNSName' \
+            --output text)
+
+          URL="http://$ALB_DNS:${{ env.ALB_PORT }}"
+          echo "🔍 Testando $URL ..."
+
+          for i in $(seq 1 18); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 "$URL" || echo "000")
+            echo "  Tentativa $i/18: HTTP $STATUS"
+            if [[ "$STATUS" =~ ^(200|401|403)$ ]]; then
+              echo "✅ AMR-Core respondendo!"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "❌ Health check falhou após 3 minutos"
+          exit 1

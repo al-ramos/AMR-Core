@@ -19,7 +19,6 @@ public class AmrCoreDbContext(DbContextOptions<AmrCoreDbContext> options) : DbCo
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
-        mb.HasDefaultSchema("erp");
         mb.ApplyConfigurationsFromAssembly(typeof(AmrCoreDbContext).Assembly);
         base.OnModelCreating(mb);
     }

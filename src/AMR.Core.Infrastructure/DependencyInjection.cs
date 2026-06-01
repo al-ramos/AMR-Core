@@ -14,7 +14,7 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services.AddDbContext<AmrCoreDbContext>(opts =>
-            opts.UseSqlServer(
+            opts.UseSqlite(
                 configuration.GetConnectionString("AmrCore"),
                 sql => sql.MigrationsAssembly(typeof(AmrCoreDbContext).Assembly.FullName)));
 

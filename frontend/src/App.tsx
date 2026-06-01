@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, NavLink, useLocation } from 'react-router-dom'
 import ProdutosPage from './pages/ProdutosPage'
 import PedidosVendaPage from './pages/PedidosVendaPage'
+import PedidosCompraPage from './pages/PedidosCompraPage'
 
 const NAV = [
   { section: 'Estoque', items: [
@@ -103,7 +104,7 @@ export default function App() {
             <Routes>
               <Route path="/"          element={<ProdutosPage />} />
               <Route path="/pv"        element={<PedidosVendaPage />} />
-              <Route path="/pc"        element={<PlaceholderPage label="Pedidos de Compra" />} />
+              <Route path="/pc"        element={<PedidosCompraPage />} />
               <Route path="/dashboard" element={<PlaceholderPage label="Dashboard" />} />
             </Routes>
           </main>
