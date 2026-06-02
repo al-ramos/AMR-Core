@@ -1,78 +1,120 @@
-# 🔩 AMR-Core
+# AMR-Core
 
-> Módulo core do ecossistema AMR SYSTEM — gestão de produtos, fornecedores, clientes, estoque e pedidos de compra.
+Módulo core do **AMR SYSTEM** — gestão de produtos, estoque, pedidos de compra e pedidos de venda.
 
-[![CI](https://github.com/alexsandro-ramos/AMR-Core/actions/workflows/ci.yml/badge.svg)](https://github.com/alexsandro-ramos/AMR-Core/actions/workflows/ci.yml)
-[![Deploy AWS](https://github.com/alexsandro-ramos/AMR-Core/actions/workflows/deploy-aws.yml/badge.svg)](https://github.com/alexsandro-ramos/AMR-Core/actions/workflows/deploy-aws.yml)
-![.NET 8](https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet)
-![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)
-
-Parte do [AMR SYSTEM](../README.md) — veja a documentação do ecossistema completo.
+[![CI](https://github.com/al-ramos/amr-core/actions/workflows/ci.yml/badge.svg)](https://github.com/al-ramos/amr-core/actions/workflows/ci.yml)
+[![Deploy AWS](https://github.com/al-ramos/amr-core/actions/workflows/deploy-aws.yml/badge.svg)](https://github.com/al-ramos/amr-core/actions/workflows/deploy-aws.yml)
+![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)
+![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react)
 
 ---
 
-## ✨ Funcionalidades
+## Funcionalidades
 
-- **Produtos** — cadastro com categorização, unidade de medida e estoque mínimo
-- **Fornecedores** — CRUD com CNPJ, contato e histórico de compras
-- **Clientes** — gestão com CPF/CNPJ e endereço
-- **Movimentação de Estoque** — entradas, saídas e saldo atual por produto
-- **Pedidos de Compra** — workflow completo (Rascunho → Aprovado → Recebido)
-- **Integração** — consome AMR-Financeiro para vinculação de notas fiscais
+| Módulo | Descrição |
+|---|---|
+| **Produtos** | Catálogo com SKU, unidade de medida, preço e estoque mínimo |
+| **Fornecedores** | Cadastro com CNPJ e categoria |
+| **Clientes** | PJ (CNPJ) e PF (CPF) |
+| **Pedidos de Compra** | Workflow: Rascunho → Aprovado → Recebido |
+| **Pedidos de Venda** | Workflow: Rascunho → Aprovado → Faturado (baixa estoque automática) |
+| **Estoque** | Saldo por produto/empresa com histórico de movimentos |
+| **Dashboard** | KPIs consolidados: produtos, pedidos e valor faturado |
 
 ---
 
-## 🛠️ Stack
+## Stack
 
 | Camada | Tecnologia |
 |---|---|
-| Backend | .NET 8 + Clean Architecture + CQRS (MediatR) |
-| ORM | EF Core 8 + SQLite |
-| Frontend | React 18 + TypeScript + Vite + Tailwind CSS |
-| Testes | xUnit + Coverlet |
+| Backend | .NET 10 + Clean Architecture + CQRS (MediatR 12) |
+| ORM | EF Core 9 + SQLite + Migrations |
+| Frontend | React 19 + TypeScript + Vite + Bootstrap 5 |
+| State | TanStack React Query 5 |
+| Testes | xUnit + Coverlet (domínio + application handlers) |
+| Infra | AWS ECS Fargate + ECR + ALB + EFS |
+| CI/CD | GitHub Actions |
 
 ---
 
-## 🚀 Rodando localmente
-
-```powershell
-# Backend
-cd src/AMR.Core.API
-dotnet run
-# → http://localhost:5001/swagger
-
-# Frontend
-cd frontend
-npm install
-npm run dev
-# → http://localhost:5175
-```
-
-Ou suba o ecossistema completo com `.\automation\start-amr-dev.ps1` na raiz do AMR SYSTEM.
-
----
-
-## 🏗️ Estrutura
+## Arquitetura
 
 ```
 src/
-├── AMR.Core.Domain/          # Entidades, value objects, regras
-├── AMR.Core.Application/     # CQRS handlers, DTOs, validadores
-├── AMR.Core.Infrastructure/  # EF Core, SQLite, repositórios
-├── AMR.Core.Shared/          # Contratos compartilhados
-└── AMR.Core.API/             # Controllers, Program.cs, DI
-frontend/                      # React + Vite + TypeScript
-tests/                         # xUnit + Coverlet
+├── AMR.Core.Domain/          # Entidades, value objects, enums, interfaces
+├── AMR.Core.Application/     # CQRS commands/queries/handlers, DTOs
+├── AMR.Core.Infrastructure/  # EF Core, SQLite, repositórios, migrations
+├── AMR.Core.Shared/          # Result<T> e contratos compartilhados
+└── AMR.Core.API/             # Controllers, Program.cs, DI, Swagger
+frontend/
+└── src/
+    ├── pages/                # ProdutosPage, PedidosCompraPage, PedidosVendaPage, DashboardPage
+    └── api/                  # Clientes Axios por recurso
+tests/
+└── AMR.Core.Domain.Tests/    # Testes de domínio + handlers da camada Application
 ```
 
 ---
 
-## ☁️ Deploy
+## Endpoints da API
+
+Swagger disponível em `/swagger` ao rodar localmente.
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `GET` | `/api/produto` | Lista produtos ativos |
+| `POST` | `/api/produto` | Cadastra produto |
+| `GET` | `/api/fornecedor?empresaId=1` | Lista fornecedores ativos |
+| `GET` | `/api/cliente?empresaId=1` | Lista clientes ativos |
+| `GET` | `/api/unidademedida` | Lista unidades de medida |
+| `GET` | `/api/pedidocompra?empresaId=1&status=Rascunho` | Lista pedidos de compra |
+| `GET` | `/api/pedidocompra/{id}` | Detalhe do pedido de compra |
+| `POST` | `/api/pedidocompra` | Cria pedido de compra |
+| `PATCH` | `/api/pedidocompra/{id}/aprovar` | Aprova pedido de compra |
+| `PATCH` | `/api/pedidocompra/{id}/receber` | Recebe pedido (atualiza estoque) |
+| `GET` | `/api/pedidovenda?empresaId=1&status=Aprovado` | Lista pedidos de venda |
+| `GET` | `/api/pedidovenda/{id}` | Detalhe do pedido de venda |
+| `POST` | `/api/pedidovenda` | Cria pedido de venda |
+| `PATCH` | `/api/pedidovenda/{id}/aprovar` | Aprova pedido de venda |
+| `PATCH` | `/api/pedidovenda/{id}/faturar` | Fatura pedido (baixa estoque) |
+
+---
+
+## Rodando localmente
+
+```bash
+# Backend (http://localhost:5001/swagger)
+cd src/AMR.Core.API
+dotnet run
+
+# Frontend (http://localhost:5175)
+cd frontend
+npm install
+npm run dev
+
+# Testes
+dotnet test
+
+# Nova migration
+dotnet ef migrations add <Nome> \
+  --project src/AMR.Core.Infrastructure \
+  --startup-project src/AMR.Core.API
+
+dotnet ef database update \
+  --project src/AMR.Core.Infrastructure \
+  --startup-project src/AMR.Core.API
+```
+
+---
+
+## Deploy AWS
 
 Push para `main` dispara `.github/workflows/deploy-aws.yml`:
 
-1. **Build & Push** — imagens API e Web para ECR (`amr-core-api`, `amr-core-web`)
-2. **Deploy ECS** — registra nova task definition + force new deployment no cluster `amr-system`
-3. **Health check** — aguarda ALB responder na porta 8081
+1. **Build & Push** — imagens `amr-core-api` e `amr-core-web` para ECR
+2. **Deploy ECS** — nova task definition + force deploy no cluster `amr-system`
+3. **Health check** — aguarda ALB responder na porta `8081`
 
-**AWS Secrets necessários:** `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`
+**Produção:** `amr-system-1908797477.sa-east-1.elb.amazonaws.com:8081`
+
+**Secrets necessários no GitHub:** `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`

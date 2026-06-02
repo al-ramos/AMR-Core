@@ -11,7 +11,16 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new() { Title = "AMR.Core API", Version = "v1" });
+    c.SwaggerDoc("v1", new()
+    {
+        Title       = "AMR.Core API",
+        Version     = "v1",
+        Description = "API do módulo core do AMR SYSTEM — produtos, estoque, pedidos de compra e venda.",
+    });
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
+        c.IncludeXmlComments(xmlPath);
 });
 
 // Application — MediatR

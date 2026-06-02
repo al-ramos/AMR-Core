@@ -1,5 +1,9 @@
-import { useQuery } from '@tanstack/react-query'
-import { produtosApi } from '../api/produtosApi'
+import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { produtosApi, type CriarProdutoPayload } from '../api/produtosApi'
+import { unidadesMedidaApi } from '../api/unidadesMedidaApi'
+
+const EMPRESA_ID = 1
 
 function brl(v: number) {
   return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -11,14 +15,52 @@ function StatusBadge({ ativo }: { ativo: boolean }) {
     : <span className="badge rounded-pill badge-inativo fw-semibold" style={{ fontSize: 11, padding: '4px 10px' }}>Inativo</span>
 }
 
+const FORM_VAZIO: CriarProdutoPayload = {
+  sku: '', nome: '', descricao: '', precoUnitario: 0,
+  estoqueMinimo: 0, unidadeMedidaId: 0, empresaId: EMPRESA_ID,
+}
+
 export default function ProdutosPage() {
+  const [modalAberto, setModalAberto] = useState(false)
+  const [form, setForm]               = useState<CriarProdutoPayload>(FORM_VAZIO)
+  const [erro, setErro]               = useState<string | null>(null)
+  const qc = useQueryClient()
+
   const { data: produtos = [], isLoading, isError, error } = useQuery({
     queryKey: ['produtos'],
     queryFn: produtosApi.listar,
   })
 
+  const { data: unidades = [] } = useQuery({
+    queryKey: ['unidades-medida'],
+    queryFn: unidadesMedidaApi.listar,
+  })
+
+  const criar = useMutation({
+    mutationFn: produtosApi.criar,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['produtos'] })
+      setModalAberto(false)
+      setForm(FORM_VAZIO)
+      setErro(null)
+    },
+    onError: (e: unknown) => {
+      setErro((e as Error)?.message ?? 'Erro ao criar produto.')
+    },
+  })
+
   const ativos   = produtos.filter(p => p.ativo).length
   const inativos = produtos.length - ativos
+
+  function submitForm(e: React.FormEvent) {
+    e.preventDefault()
+    setErro(null)
+    if (!form.sku.trim() || !form.nome.trim() || !form.unidadeMedidaId) {
+      setErro('SKU, Nome e Unidade de Medida são obrigatórios.')
+      return
+    }
+    criar.mutate(form)
+  }
 
   return (
     <>
@@ -42,6 +84,13 @@ export default function ProdutosPage() {
           <span style={{ fontSize: 13, fontWeight: 600, color: '#495057' }}>
             <i className="bi bi-box-seam me-2"></i>Catalogo de produtos
           </span>
+          <button
+            className="btn btn-sm btn-primary"
+            style={{ fontSize: 12 }}
+            onClick={() => { setModalAberto(true); setErro(null) }}
+          >
+            <i className="bi bi-plus-lg me-1"></i>Novo produto
+          </button>
         </div>
 
         {isLoading && (
@@ -100,6 +149,97 @@ export default function ProdutosPage() {
           </div>
         )}
       </div>
+
+      {/* ── Modal Novo Produto ─────────────────────────────────────────────── */}
+      {modalAberto && (
+        <div className="modal show d-block" style={{ background: 'rgba(0,0,0,.4)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <form onSubmit={submitForm}>
+                <div className="modal-header">
+                  <h5 className="modal-title" style={{ fontSize: 15 }}>
+                    <i className="bi bi-box-seam me-2"></i>Novo produto
+                  </h5>
+                  <button type="button" className="btn-close" onClick={() => setModalAberto(false)}></button>
+                </div>
+                <div className="modal-body">
+                  {erro && (
+                    <div className="alert alert-danger py-2" style={{ fontSize: 13 }}>{erro}</div>
+                  )}
+                  <div className="row g-3">
+                    <div className="col-md-4">
+                      <label className="form-label" style={{ fontSize: 12 }}>SKU *</label>
+                      <input
+                        className="form-control form-control-sm"
+                        value={form.sku}
+                        onChange={e => setForm(f => ({ ...f, sku: e.target.value }))}
+                        placeholder="EX: PARAF-M6"
+                      />
+                    </div>
+                    <div className="col-md-8">
+                      <label className="form-label" style={{ fontSize: 12 }}>Nome *</label>
+                      <input
+                        className="form-control form-control-sm"
+                        value={form.nome}
+                        onChange={e => setForm(f => ({ ...f, nome: e.target.value }))}
+                        placeholder="Nome do produto"
+                      />
+                    </div>
+                    <div className="col-12">
+                      <label className="form-label" style={{ fontSize: 12 }}>Descrição</label>
+                      <input
+                        className="form-control form-control-sm"
+                        value={form.descricao ?? ''}
+                        onChange={e => setForm(f => ({ ...f, descricao: e.target.value }))}
+                        placeholder="Descrição opcional"
+                      />
+                    </div>
+                    <div className="col-md-5">
+                      <label className="form-label" style={{ fontSize: 12 }}>Preço Unitário *</label>
+                      <input
+                        type="number" min="0" step="0.01"
+                        className="form-control form-control-sm"
+                        value={form.precoUnitario}
+                        onChange={e => setForm(f => ({ ...f, precoUnitario: parseFloat(e.target.value) || 0 }))}
+                      />
+                    </div>
+                    <div className="col-md-4">
+                      <label className="form-label" style={{ fontSize: 12 }}>Estoque Mínimo</label>
+                      <input
+                        type="number" min="0" step="1"
+                        className="form-control form-control-sm"
+                        value={form.estoqueMinimo}
+                        onChange={e => setForm(f => ({ ...f, estoqueMinimo: parseFloat(e.target.value) || 0 }))}
+                      />
+                    </div>
+                    <div className="col-md-3">
+                      <label className="form-label" style={{ fontSize: 12 }}>Unidade *</label>
+                      <select
+                        className="form-select form-select-sm"
+                        value={form.unidadeMedidaId}
+                        onChange={e => setForm(f => ({ ...f, unidadeMedidaId: parseInt(e.target.value) }))}
+                      >
+                        <option value={0}>—</option>
+                        {unidades.map(u => (
+                          <option key={u.id} value={u.id}>{u.sigla}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-sm btn-secondary" onClick={() => setModalAberto(false)}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="btn btn-sm btn-primary" disabled={criar.isPending}>
+                    {criar.isPending ? 'Salvando...' : 'Salvar produto'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }

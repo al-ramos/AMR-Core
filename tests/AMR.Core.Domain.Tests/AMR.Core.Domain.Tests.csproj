@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\AMR.Core.Domain\AMR.Core.Domain.csproj" />
+    <ProjectReference Include="..\..\src\AMR.Core.Application\AMR.Core.Application.csproj" />
   </ItemGroup>
 
 </Project>
