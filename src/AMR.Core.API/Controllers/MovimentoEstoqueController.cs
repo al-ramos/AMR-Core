@@ -1,12 +1,15 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using AMR.Core.Application.MovimentosEstoque.Queries;
+using AMR.Core.API.Extensions;
 
 namespace AMR.Core.API.Controllers;
 
 /// <summary>Movimentos de estoque (entradas, saídas e ajustes).</summary>
 [ApiController]
 [Route("api/[controller]")]
+[ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+[ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
 public class MovimentoEstoqueController(IMediator mediator) : ControllerBase
 {
     /// <summary>Lista os movimentos de estoque com filtros opcionais.</summary>
@@ -14,6 +17,7 @@ public class MovimentoEstoqueController(IMediator mediator) : ControllerBase
     /// <param name="produtoId">Filtra por produto específico.</param>
     /// <param name="tipo">Filtra por tipo: Entrada, Saida ou AjusteManual.</param>
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> Listar(
         [FromQuery] int     empresaId,
         [FromQuery] int?    produtoId = null,
@@ -23,6 +27,6 @@ public class MovimentoEstoqueController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(
             new ListarMovimentosEstoqueQuery(empresaId, produtoId, tipo), ct);
 
-        return result.Sucesso ? Ok(result.Valor) : BadRequest(result.Erro);
+        return result.ToActionResult(this);
     }
 }

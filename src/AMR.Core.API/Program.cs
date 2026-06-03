@@ -1,6 +1,7 @@
 using MediatR;
 using AMR.Core.Infrastructure;
 using AMR.Core.Infrastructure.Data;
+using AMR.Core.API.Middleware;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -16,6 +17,7 @@ builder.Host.UseSerilog((ctx, cfg) => cfg
             ? "[{Timestamp:o} {Level:u3}] {SourceContext}: {Message:lj} {Properties:j}{NewLine}{Exception}"
             : "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}"));
 
+builder.Services.AddProblemDetails();
 builder.Services.AddControllers()
     .AddJsonOptions(opts =>
         opts.JsonSerializerOptions.PropertyNameCaseInsensitive = true);
@@ -54,7 +56,7 @@ builder.Services.AddRateLimiter(options =>
     };
 });
 
-// CORS — permite o rds-forms-fabrica chamar esta API
+// CORS — permite o frontend e outros módulos chamarem esta API
 builder.Services.AddCors(opts =>
     opts.AddPolicy("RdsFabrica", policy =>
         policy.WithOrigins(
@@ -72,6 +74,7 @@ using (var scope = app.Services.CreateScope())
     await AmrCoreSeed.AplicarAsync(db);
 }
 
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseSwagger();
 app.UseSwaggerUI();
