@@ -127,6 +127,9 @@ html, body, #root { height: 100%; margin: 0; }
 .badge-cancelado  { background: #fce4ec !important; color: #c62828 !important; }
 .badge-ativo      { background: #e8f5e9 !important; color: #2e7d32 !important; }
 .badge-inativo    { background: #f5f5f5 !important; color: #757575 !important; }
+.badge-entrada    { background: #e8f5e9 !important; color: #2e7d32 !important; }
+.badge-saida      { background: #fce4ec !important; color: #c62828 !important; }
+.badge-ajuste     { background: #fff3e0 !important; color: #e65100 !important; }
 
 /* ---------- Empty state ---------- */
 .amr-empty {

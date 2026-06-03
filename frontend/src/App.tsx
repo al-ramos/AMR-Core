@@ -2,10 +2,13 @@ import { BrowserRouter, Routes, Route, NavLink, useLocation } from 'react-router
 import ProdutosPage from './pages/ProdutosPage'
 import PedidosVendaPage from './pages/PedidosVendaPage'
 import PedidosCompraPage from './pages/PedidosCompraPage'
+import DashboardPage from './pages/DashboardPage'
+import MovimentosEstoquePage from './pages/MovimentosEstoquePage'
 
 const NAV = [
   { section: 'Estoque', items: [
-    { to: '/',        icon: 'bi-box-seam',    label: 'Produtos',        end: true  },
+    { to: '/',                  icon: 'bi-box-seam',          label: 'Produtos',            end: true  },
+    { to: '/estoque/movimentos', icon: 'bi-arrow-left-right', label: 'Movimentos',          end: false },
   ]},
   { section: 'Comercial', items: [
     { to: '/pv',      icon: 'bi-cart-check',  label: 'Pedidos de Venda', end: false },
@@ -17,7 +20,8 @@ const NAV = [
 ]
 
 const PAGE_LABELS: Record<string, { title: string; subtitle: string }> = {
-  '/':          { title: 'Produtos',          subtitle: 'Catalogo e estoque'         },
+  '/':                   { title: 'Produtos',             subtitle: 'Catalogo e estoque'         },
+  '/estoque/movimentos': { title: 'Movimentos de Estoque', subtitle: 'Historico de entradas e saidas' },
   '/pv':        { title: 'Pedidos de Venda',  subtitle: 'Gestao de vendas'           },
   '/pc':        { title: 'Pedidos de Compra', subtitle: 'Gestao de compras'          },
   '/dashboard': { title: 'Dashboard',         subtitle: 'Visao gerencial'            },
@@ -105,7 +109,8 @@ export default function App() {
               <Route path="/"          element={<ProdutosPage />} />
               <Route path="/pv"        element={<PedidosVendaPage />} />
               <Route path="/pc"        element={<PedidosCompraPage />} />
-              <Route path="/dashboard" element={<PlaceholderPage label="Dashboard" />} />
+              <Route path="/dashboard"          element={<DashboardPage />} />
+              <Route path="/estoque/movimentos" element={<MovimentosEstoquePage />} />
             </Routes>
           </main>
         </div>
