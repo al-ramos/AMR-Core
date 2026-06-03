@@ -83,6 +83,21 @@ Ao concluir qualquer card/tarefa, executar nesta ordem:
 2. **Notion card** — atualizar `Entrega` para a data real e adicionar referência do commit no conteúdo da página
 3. **Kanban** — confirmar que `Status` está `✅ Concluído` (ou avançar se necessário)
 4. **CLAUDE.md** — atualizar seção `Estado do Projeto` se houve mudança relevante de contexto
+5. **Próximo Card** — identificar o próximo card no Backlog, mover para `▶️ Em andamento` no Kanban/Notion e atualizar a seção `## Próximo Card` abaixo
+
+---
+
+## Próximo Card
+
+**📝 Documentação final Notion — AMR Ecosystem consolidado**
+- Sprint: 6 | Prioridade: Alta | Status: `▶️ Em andamento`
+- Notion: https://www.notion.so/374d35f21de58191939acf6c08a6e3e5
+- Itens:
+  - [ ] CLAUDE.md em AMR-Financeiro
+  - [ ] CLAUDE.md em AMR-Fábrica
+  - [ ] AMR-Fábrica re-deploy confirmado em produção
+  - [ ] Backlog Ágil — Sprint 6 atualizado com todos os entregáveis
+  - [ ] AMR SYSTEM — Documentação Completa revisada
 
 ---
 
