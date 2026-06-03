@@ -67,13 +67,15 @@ Push para `main` dispara `deploy-aws.yml`:
 - Infra Terraform unificada provisionada na AWS
 - CI/CD GitHub Actions funcionando para AMR-Core e AMR-Fábrica
 - 26 testes unitários passando (13 domain + 13 application handlers)
-- **Sprint 6 concluído no AMR-Core:**
-  - Formulários de criação: Novo Produto, Novo Pedido de Compra, Novo Pedido de Venda (modais com dropdowns)
+- **Sprint 6 entregues no AMR-Core:**
   - Dashboard `/dashboard` com KPIs de produtos, compras e vendas (`DashboardPage.tsx`)
-  - Endpoints GET /api/fornecedor, /api/cliente, /api/unidademedida (para dropdowns)
-  - Swagger XML docs — 6 controllers documentados
+  - Swagger XML docs — controllers documentados
   - README revisado para .NET 10 / React 19
+  - **CRUD completo (03/06/2026):** Produto (criar/editar/inativar/reativar), PC/PV (criar/cancelar)
+  - Endpoints GET /api/fornecedor, /api/cliente, /api/unidademedida (dropdowns)
+  - Domínio: `Produto.Atualizar()`, commands Inativar/Reativar/Cancelar
 - **Frontend — páginas implementadas:** `ProdutosPage`, `PedidosCompraPage`, `PedidosVendaPage`, `DashboardPage`
+  - Todas com modais de criação, ações de workflow e botões de edição/cancelamento
 
 ## Protocolo de Encerramento de Card
 
@@ -109,16 +111,15 @@ Executar em ordem:
 
 ## Próximo Card
 
-**📝 Documentação final Notion — AMR Ecosystem consolidado** (itens finais)
-- Sprint: 6 | Prioridade: Alta | Status: `▶️ Em andamento`
-- Notion: https://www.notion.so/374d35f21de58191939acf6c08a6e3e5
-- Itens concluídos (03/06/2026):
-  - [x] AMR-Fábrica re-deploy confirmado em produção ✅
-  - [x] Backlog Ágil — Sprint 6 atualizado com todos os entregáveis ✅
-  - [x] AMR SYSTEM — Documentação Completa revisada (Sprint 6, .NET 10) ✅
-- Itens pendentes (nova sessão com repos respectivos):
-  - [ ] CLAUDE.md em AMR-Financeiro — conteúdo pronto em `docs/CLAUDE-Financeiro.md`
-  - [ ] CLAUDE.md em AMR-Fábrica — conteúdo pronto em `docs/CLAUDE-Fabrica.md`
+**🔧 Polish AMR-Core — Filtros, paginação e UX das páginas** (sugestão Sprint 6)
+- Sprint: 6 | Prioridade: Média | Status: `🔲 Backlog`
+- Sugestões: filtro por nome/SKU em Produtos, paginação nas tabelas, nome do Fornecedor/Cliente nas linhas de pedido (hoje exibe "Fornecedor 1")
+
+> **Card bloqueado (precisa de outra sessão):**
+> 📝 Documentação final — CLAUDE.md em AMR-Financeiro e AMR-Fábrica
+> - Notion: https://www.notion.so/374d35f21de58191939acf6c08a6e3e5
+> - Conteúdo pronto em `docs/CLAUDE-Financeiro.md` e `docs/CLAUDE-Fabrica.md`
+> - Requer sessões Claude Code web com os repos `al-ramos/AMR-Financeiro` e `al-ramos/AMR-Forms-Fabrica`
 
 ---
 
