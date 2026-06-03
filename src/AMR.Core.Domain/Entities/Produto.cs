@@ -45,6 +45,25 @@ public class Produto
                                 decimal estoqueMinimo = 0)
         => new(sku, nome, descricao, precoUnitario, estoqueMinimo, unidadeMedidaId);
 
+    public void Atualizar(string nome, string? descricao, decimal precoUnitario, decimal estoqueMinimo, int unidadeMedidaId)
+    {
+        if (string.IsNullOrWhiteSpace(nome))
+            throw new ArgumentException("Nome é obrigatório.", nameof(nome));
+        if (precoUnitario < 0)
+            throw new ArgumentException("Preço não pode ser negativo.", nameof(precoUnitario));
+        if (estoqueMinimo < 0)
+            throw new ArgumentException("Estoque mínimo não pode ser negativo.", nameof(estoqueMinimo));
+        if (unidadeMedidaId <= 0)
+            throw new ArgumentException("UnidadeMedidaId inválido.", nameof(unidadeMedidaId));
+
+        Nome            = nome.Trim();
+        Descricao       = descricao?.Trim();
+        PrecoUnitario   = precoUnitario;
+        EstoqueMinimo   = estoqueMinimo;
+        UnidadeMedidaId = unidadeMedidaId;
+        DataAtualizacao = DateTime.UtcNow;
+    }
+
     public void AtualizarPreco(decimal novoPreco)
     {
         if (novoPreco < 0) throw new ArgumentException("Preço não pode ser negativo.");
