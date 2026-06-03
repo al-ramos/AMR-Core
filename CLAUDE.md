@@ -87,6 +87,24 @@ Ao concluir qualquer card/tarefa, executar nesta ordem:
 
 ---
 
+## Protocolo de Encerramento de Sessão
+
+Disparado quando o usuário disser **"encerrar sessão"** (ou "fechar sessão", "fim do dia", "encerrando").
+
+Executar em ordem:
+
+1. Consolidar todos os cards concluídos na sessão (título, commit, link Notion)
+2. Confirmar o Próximo Card atualizado no `CLAUDE.md`
+3. Criar **1 evento no Google Calendar** com:
+   - Título: `AMR-Core ✅ Sessão DD/MM/YYYY`
+   - Data/hora: agora (duração 30 min)
+   - Descrição: cards entregues + commits + próximo card
+   - Reminder: e-mail 0 minutos antes (notificação imediata)
+
+> Apenas 1 chamada de Calendar por sessão — independente de quantos cards foram feitos.
+
+---
+
 ## Próximo Card
 
 **📝 Documentação final Notion — AMR Ecosystem consolidado**
