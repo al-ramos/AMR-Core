@@ -2,8 +2,19 @@ using MediatR;
 using AMR.Core.Infrastructure;
 using AMR.Core.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ── Serilog como provider de log ──────────────────────────────────────────────
+builder.Host.UseSerilog((ctx, cfg) => cfg
+    .ReadFrom.Configuration(ctx.Configuration)
+    .Enrich.FromLogContext()
+    .Enrich.WithProperty("Application", "AMR.Core.API")
+    .WriteTo.Console(
+        outputTemplate: ctx.HostingEnvironment.IsProduction()
+            ? "[{Timestamp:o} {Level:u3}] {SourceContext}: {Message:lj} {Properties:j}{NewLine}{Exception}"
+            : "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}"));
 
 builder.Services.AddControllers()
     .AddJsonOptions(opts =>
@@ -68,6 +79,12 @@ app.UseSwaggerUI();
 // Redirect raiz para Swagger em dev
 if (app.Environment.IsDevelopment())
     app.MapGet("/", () => Results.Redirect("/swagger/index.html")).ExcludeFromDescription();
+
+// ── Serilog request logging ───────────────────────────────────────────────────
+app.UseSerilogRequestLogging(opts =>
+{
+    opts.MessageTemplate = "HTTP {RequestMethod} {RequestPath} → {StatusCode} ({Elapsed:0.000}ms)";
+});
 
 // ── Security Headers (OWASP) ──────────────────────────────────────────────────
 app.Use(async (ctx, next) =>
