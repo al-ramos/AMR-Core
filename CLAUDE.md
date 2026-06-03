@@ -9,8 +9,8 @@ AMR-Core é o módulo core do **AMR SYSTEM** — ERP corporativo composto por 3 
 ## Stack
 - Backend: .NET 10 + Clean Architecture + CQRS (MediatR 12+)
 - ORM: EF Core + SQLite + Migrations
-- Frontend: React 18 + TypeScript + Vite + Tailwind CSS + Lucide React
-- Testes: xUnit + Coverlet (13 testes unitários)
+- Frontend: React 19 + TypeScript + Vite + Tailwind CSS + Lucide React
+- Testes: xUnit + Coverlet (26 testes unitários)
 - Infra: AWS ECS Fargate + ECR + ALB + EFS | CI/CD: GitHub Actions
 
 ## Arquitetura
@@ -63,11 +63,26 @@ Push para `main` dispara `deploy-aws.yml`:
 - **ECR:** `amr-core-api`, `amr-core-web`
 - **EFS:** montado em `/data` para persistência do SQLite
 
-## Estado do Projeto — Sprint 5 concluída (01/06/2026)
+## Estado do Projeto — Sprint 6 ativa (02/06–24/06/2026)
+### Sprint 5 concluída (01/06/2026)
 - Infra Terraform unificada provisionada na AWS
 - CI/CD GitHub Actions funcionando para AMR-Core e AMR-Fábrica
 - 13 testes unitários passando
-- **Sprint 6 (11/06–24/06):** documentação final + polish
+
+### Sprint 6 — Documentação & Polish (02/06–24/06/2026)
+**Concluído:**
+- Formulários de criação com modais e dropdowns (Produto, Pedido de Compra, Pedido de Venda)
+- Dashboard com KPIs de produtos, compras e vendas
+- Endpoints GET para dropdowns (`/api/fornecedor`, `/api/cliente`, `/api/unidademedida`)
+- Swagger XML docs — 6 controllers, 17 endpoints documentados
+- 13 novos testes Application handlers (CriarProduto, AprovarPedidoCompra, FaturarPedidoVenda) → 26 total
+- README revisado para .NET 10 / React 19
+- CLAUDE.md criado no AMR-Core
+
+**Pendente:**
+- CLAUDE.md em AMR-Financeiro e AMR-Fábrica
+- AMR-Fábrica re-deploy confirmado em produção
+- Documentação final Notion consolidada
 
 ## Troubleshooting Frequente
 | Problema | Solução |
