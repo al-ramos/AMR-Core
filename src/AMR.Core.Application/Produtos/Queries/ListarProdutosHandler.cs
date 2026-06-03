@@ -11,7 +11,7 @@ public class ListarProdutosHandler(IProdutoRepository repo)
 {
     public async Task<Result<IReadOnlyList<ProdutoDto>>> Handle(ListarProdutosQuery _, CancellationToken ct)
     {
-        var produtos = await repo.ListarAtivosAsync(ct);
+        var produtos = await repo.ListarTodosAsync(ct);
         var dtos = produtos.Select(ToDto).ToList().AsReadOnly();
         return Result.Ok<IReadOnlyList<ProdutoDto>>(dtos);
     }

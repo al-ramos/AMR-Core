@@ -16,6 +16,9 @@ public class ProdutoRepository(AmrCoreDbContext ctx) : IProdutoRepository
     public async Task<IReadOnlyList<Produto>> ListarAtivosAsync(CancellationToken ct = default) =>
         await ctx.Produtos.Include(p => p.UnidadeMedida).Where(p => p.Ativo).ToListAsync(ct);
 
+    public async Task<IReadOnlyList<Produto>> ListarTodosAsync(CancellationToken ct = default) =>
+        await ctx.Produtos.Include(p => p.UnidadeMedida).OrderBy(p => p.Nome).ToListAsync(ct);
+
     public Task AdicionarAsync(Produto produto, CancellationToken ct = default) =>
         ctx.Produtos.AddAsync(produto, ct).AsTask();
 

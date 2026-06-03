@@ -45,4 +45,11 @@ public class PedidoCompraController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(new ReceberPedidoCompraCommand(id), ct);
         return result.Sucesso ? Ok(result.Valor) : BadRequest(result.Erro);
     }
+
+    [HttpPatch("{id:int}/cancelar")]
+    public async Task<IActionResult> Cancelar(int id, CancellationToken ct)
+    {
+        var result = await mediator.Send(new CancelarPedidoCompraCommand(id), ct);
+        return result.Sucesso ? Ok(result.Valor) : BadRequest(result.Erro);
+    }
 }
