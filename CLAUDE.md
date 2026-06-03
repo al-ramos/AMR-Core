@@ -18,15 +18,39 @@ AMR-Core é o módulo core do **AMR SYSTEM** — ERP corporativo composto por 3 
 src/
 ├── AMR.Core.Domain/          # Entidades, value objects, enums, interfaces
 ├── AMR.Core.Application/     # CQRS handlers, DTOs, queries, commands
+│   ├── Interfaces/           # IProdutoRepository, IFornecedorRepository, IClienteRepository,
+│   │                         #   IUnidadeMedidaRepository, IPedidoCompraRepository,
+│   │                         #   IPedidoVendaRepository, ISaldoEstoqueRepository, IUnitOfWork
+│   ├── Produtos/Commands/    # CriarProdutoCommand + CriarProdutoHandler
+│   ├── Fornecedores/Queries/ # ListarFornecedoresQuery + Handler
+│   ├── Clientes/Queries/     # ListarClientesQuery + Handler
+│   ├── UnidadesMedida/       # ListarUnidadesMedidaQuery + Handler
+│   ├── PedidosCompra/        # Criar, Aprovar, Receber + Listar (commands + queries)
+│   ├── PedidosVenda/         # Criar, Aprovar, Faturar + Listar (commands + queries)
+│   └── DTOs/                 # ProdutoDto, FornecedorDto, ClienteDto, UnidadeMedidaDto, ...
 ├── AMR.Core.Infrastructure/  # EF Core, SQLite, repositories, UoW, migrations
+│   └── Data/Repositories/    # ProdutoRepository, FornecedorRepository, ClienteRepository,
+│                             #   UnidadeMedidaRepository, PedidoCompraRepository,
+│                             #   PedidoVendaRepository, SaldoEstoqueRepository
 ├── AMR.Core.Shared/          # Result<T> e contratos compartilhados
-└── AMR.Core.API/             # Controllers, Program.cs, DI
+└── AMR.Core.API/             # Controllers (6), Program.cs, DI, Swagger XML
+    └── Controllers/          # ProdutoController, FornecedorController, ClienteController,
+                              #   UnidadeMedidaController, PedidoCompraController,
+                              #   PedidoVendaController
 frontend/
 └── src/
     ├── pages/                # ProdutosPage, PedidosCompraPage, PedidosVendaPage, DashboardPage
-    └── api/                  # Clientes Axios por recurso (produtos, fornecedores, clientes, pedidos, unidadesMedida)
+    └── api/                  # produtos, fornecedores, clientes, pedidos, unidadesMedida (Axios)
 tests/
-└── AMR.Core.Domain.Tests/    # Testes de domínio + Application/Fakes + Application handler tests
+└── AMR.Core.Domain.Tests/
+    ├── Domain/               # 13 testes de entidades e value objects
+    └── Application/
+        ├── Fakes/            # FakeProdutoRepository, FakePedidoCompraRepository,
+        │                     #   FakePedidoVendaRepository, FakeSaldoEstoqueRepository,
+        │                     #   FakeUnitOfWork
+        ├── CriarProdutoHandlerTests.cs          (4 testes)
+        ├── AprovarPedidoCompraHandlerTests.cs   (4 testes)
+        └── FaturarPedidoVendaHandlerTests.cs    (5 testes)
 ```
 
 Padrões: Clean Architecture, CQRS+MediatR, Repository Pattern, Unit of Work, DI.
@@ -37,6 +61,32 @@ Padrões: Clean Architecture, CQRS+MediatR, Repository Pattern, Unit of Work, DI
 - `PedidoCompra` + `ItemPedidoCompra` — workflow: Rascunho → Aprovado → Recebido
 - `PedidoVenda` + `ItemPedidoVenda` — workflow: Rascunho → Aprovado → Faturado
 - `Empresa`
+
+## Padrões de Teste
+- Fakes in-memory (sem Moq, sem NSubstitute) em `tests/.../Application/Fakes/`
+- `FakeUnitOfWork` expõe `CommitCount` para verificar número de commits
+- `FakeSaldoEstoqueRepository` expõe `Movimentos` para verificar baixas de estoque
+- IDs atribuídos via reflection (`typeof(Entidade).GetProperty("Id")!.SetValue(...)`)
+- Todos os handlers testados isoladamente sem banco de dados
+
+## Endpoints da API (15 total — 6 controllers)
+| Método | Rota | Descrição |
+|---|---|---|
+| GET | `/api/produto` | Lista produtos ativos |
+| POST | `/api/produto` | Cadastra produto |
+| GET | `/api/fornecedor?empresaId=1` | Lista fornecedores ativos |
+| GET | `/api/cliente?empresaId=1` | Lista clientes ativos |
+| GET | `/api/unidademedida` | Lista unidades de medida |
+| GET | `/api/pedidocompra?empresaId=1&status=Rascunho` | Lista pedidos de compra |
+| GET | `/api/pedidocompra/{id}` | Detalhe do pedido de compra |
+| POST | `/api/pedidocompra` | Cria pedido de compra |
+| PATCH | `/api/pedidocompra/{id}/aprovar` | Aprova pedido de compra |
+| PATCH | `/api/pedidocompra/{id}/receber` | Recebe pedido (atualiza estoque) |
+| GET | `/api/pedidovenda?empresaId=1&status=Aprovado` | Lista pedidos de venda |
+| GET | `/api/pedidovenda/{id}` | Detalhe do pedido de venda |
+| POST | `/api/pedidovenda` | Cria pedido de venda |
+| PATCH | `/api/pedidovenda/{id}/aprovar` | Aprova pedido de venda |
+| PATCH | `/api/pedidovenda/{id}/faturar` | Fatura pedido (baixa estoque) |
 
 ## Comandos Principais
 ```bash
@@ -67,39 +117,27 @@ Push para `main` dispara `deploy-aws.yml`:
 - **ECR:** `amr-core-api`, `amr-core-web`
 - **EFS:** montado em `/data` para persistência do SQLite
 
-## Estado do Projeto — Sprint 6 em andamento (02/06/2026)
+## Estado do Projeto
 
 ### Sprint 5 ✅ concluída (01/06/2026)
 - Infra Terraform unificada provisionada na AWS
-- CI/CD GitHub Actions funcionando para AMR-Core e AMR-Fábrica
+- CI/CD GitHub Actions para AMR-Core e AMR-Fábrica
 - 13 testes unitários de domínio passando
 
-### Sprint 6 ⚡ (11/06–24/06/2026) — polish + documentação
-Entregue em 02/06/2026 (adiantado):
-- ✅ **Formulários completos**: modais "Novo" em Produtos, Pedidos Compra e Pedidos Venda com dropdowns de Fornecedor/Cliente/UnidadeMedida
-- ✅ **Dashboard funcional**: KPIs de produtos, pedidos de compra e pedidos de venda (contagens + valor faturado)
-- ✅ **Swagger com XML docs**: todos os controllers documentados com `<summary>` + `<response>`
-- ✅ **26 testes unitários**: 13 domínio + 13 application handlers (CriarProduto, AprovarPedidoCompra, FaturarPedidoVenda)
-- ✅ **README atualizado**: badges .NET 10/React 19, tabela completa de 15 endpoints, stack e arquitetura
+### Sprint 6 ⚡ (02/06–24/06/2026) — polish + documentação
+Entregues em 02/06/2026 (adiantado):
+- ✅ Formulários modais "Novo" em Produtos, Pedidos Compra e Pedidos Venda com dropdowns
+- ✅ DashboardPage com KPIs de produtos, compras e vendas (sem novo endpoint — usa React Query)
+- ✅ 3 novos endpoints GET para dropdowns: `/api/fornecedor`, `/api/cliente`, `/api/unidademedida`
+- ✅ Swagger XML docs — 6 controllers, 15 endpoints documentados
+- ✅ 13 novos testes application handlers → 26 testes total
+- ✅ README revisado com badges .NET 10 / React 19 e tabela de endpoints
+- ✅ CLAUDE.md criado e atualizado (este arquivo)
 
-### Endpoints da API (15 total)
-| Método | Rota | Descrição |
-|---|---|---|
-| GET | `/api/produto` | Lista produtos ativos |
-| POST | `/api/produto` | Cadastra produto |
-| GET | `/api/fornecedor?empresaId=1` | Lista fornecedores ativos |
-| GET | `/api/cliente?empresaId=1` | Lista clientes ativos |
-| GET | `/api/unidademedida` | Lista unidades de medida |
-| GET | `/api/pedidocompra?empresaId=1&status=Rascunho` | Lista pedidos de compra |
-| GET | `/api/pedidocompra/{id}` | Detalhe do pedido de compra |
-| POST | `/api/pedidocompra` | Cria pedido de compra |
-| PATCH | `/api/pedidocompra/{id}/aprovar` | Aprova pedido de compra |
-| PATCH | `/api/pedidocompra/{id}/receber` | Recebe pedido (atualiza estoque) |
-| GET | `/api/pedidovenda?empresaId=1&status=Aprovado` | Lista pedidos de venda |
-| GET | `/api/pedidovenda/{id}` | Detalhe do pedido de venda |
-| POST | `/api/pedidovenda` | Cria pedido de venda |
-| PATCH | `/api/pedidovenda/{id}/aprovar` | Aprova pedido de venda |
-| PATCH | `/api/pedidovenda/{id}/faturar` | Fatura pedido (baixa estoque) |
+Pendente na Sprint 6:
+- ⬜ CLAUDE.md em AMR-Financeiro e AMR-Fábrica
+- ⬜ AMR-Fábrica re-deploy confirmado em produção
+- ⬜ Documentação final Notion consolidada
 
 ## Troubleshooting Frequente
 | Problema | Solução |
