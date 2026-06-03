@@ -84,6 +84,7 @@ Ao concluir qualquer card/tarefa, executar nesta ordem:
 3. **Kanban** — confirmar que `Status` está `✅ Concluído` (ou avançar se necessário)
 4. **CLAUDE.md** — atualizar seção `Estado do Projeto` se houve mudança relevante de contexto
 5. **Próximo Card** — identificar o próximo card no Backlog, mover para `▶️ Em andamento` no Kanban/Notion e atualizar a seção `## Próximo Card` abaixo
+6. **Merge para main** — fazer merge do branch de feature para `main` e push, garantindo que o CLAUDE.md atualizado esteja disponível para a próxima sessão
 
 ---
 
