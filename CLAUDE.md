@@ -81,9 +81,9 @@ Ao concluir qualquer card/tarefa, executar nesta ordem:
 
 1. **Git** — commit descritivo + `git push -u origin <branch>`
 2. **Notion card** — atualizar `Entrega` para a data real e adicionar referência do commit no conteúdo da página
-3. **Kanban** — confirmar que `Status` está `✅ Concluído` (ou avançar se necessário)
+3. **Kanban** — atualizar a propriedade `Status` do card no Notion para `✅ Concluído` (via `update_properties`)
 4. **CLAUDE.md** — atualizar seção `Estado do Projeto` se houve mudança relevante de contexto
-5. **Próximo Card** — identificar o próximo card no Backlog, mover para `▶️ Em andamento` no Kanban/Notion e atualizar a seção `## Próximo Card` abaixo
+5. **Próximo Card** — identificar o próximo card no Backlog, atualizar `Status` para `▶️ Em andamento` no Notion e atualizar a seção `## Próximo Card` abaixo
 6. **Merge para main** — fazer merge do branch de feature para `main` e push, garantindo que o CLAUDE.md atualizado esteja disponível para a próxima sessão
 
 ---
@@ -95,8 +95,9 @@ Disparado quando o usuário disser **"encerrar sessão"** (ou "fechar sessão", 
 Executar em ordem:
 
 1. Consolidar todos os cards concluídos na sessão (título, commit, link Notion)
-2. Confirmar o Próximo Card atualizado no `CLAUDE.md`
-3. Criar **1 evento no Google Calendar** com:
+2. **Kanban** — atualizar `Status` de todos os cards trabalhados na sessão (concluídos → `✅ Concluído`, próximo → `▶️ Em andamento`)
+3. Confirmar o Próximo Card atualizado no `CLAUDE.md`
+4. Criar **1 evento no Google Calendar** com:
    - Título: `AMR-Core ✅ Sessão DD/MM/YYYY`
    - Data/hora: agora (duração 30 min)
    - Descrição: cards entregues + commits + próximo card
