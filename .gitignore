@@ -488,3 +488,6 @@ $RECYCLE.BIN/
 
 # Claude Code
 .claude/
+
+# Frontend build output
+frontend/dist/

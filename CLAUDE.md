@@ -73,7 +73,8 @@ Push para `main` dispara `deploy-aws.yml`:
   - Endpoints GET /api/fornecedor, /api/cliente, /api/unidademedida (para dropdowns)
   - Swagger XML docs — 6 controllers documentados
   - README revisado para .NET 10 / React 19
-- **Frontend — páginas implementadas:** `ProdutosPage`, `PedidosCompraPage`, `PedidosVendaPage`, `DashboardPage`
+  - Página Movimentos de Estoque `/estoque/movimentos` — GET /api/movimentoestoque com filtros, badges Entrada/Saída/Ajuste (`8186f8c`)
+- **Frontend — páginas implementadas:** `ProdutosPage`, `PedidosCompraPage`, `PedidosVendaPage`, `DashboardPage`, `MovimentosEstoquePage`
 
 ## Protocolo de Encerramento de Card
 
@@ -116,6 +117,7 @@ Executar em ordem:
   - [x] AMR-Fábrica re-deploy confirmado em produção ✅
   - [x] Backlog Ágil — Sprint 6 atualizado com todos os entregáveis ✅
   - [x] AMR SYSTEM — Documentação Completa revisada (Sprint 6, .NET 10) ✅
+  - [x] Página Movimentos de Estoque — AMR-Core (`8186f8c`, 03/06/2026) ✅
 - Itens pendentes (nova sessão com repos respectivos):
   - [ ] CLAUDE.md em AMR-Financeiro — conteúdo pronto em `docs/CLAUDE-Financeiro.md`
   - [ ] CLAUDE.md em AMR-Fábrica — conteúdo pronto em `docs/CLAUDE-Fabrica.md`
