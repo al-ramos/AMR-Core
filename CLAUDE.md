@@ -1,5 +1,15 @@
 # AMR-Core — Contexto para Claude Code
 
+## ⚡ Próxima Sessão (atualizado 03/06/2026)
+**Última entrega:** Sprint 6 Polish — formulários modais, DashboardPage, 3 novos endpoints dropdown, Swagger XML docs, 26 testes unitários, README revisado, CLAUDE.md criado
+**Branch ativa:** `claude/code-session-setup-70TTw` (não mergeada em main ainda)
+**Pendente:**
+- ⬜ CLAUDE.md em AMR-Financeiro e AMR-Fábrica
+- ⬜ AMR-Fábrica re-deploy confirmado em produção
+- ⬜ Documentação final Notion consolidada
+
+---
+
 ## Ecossistema
 AMR-Core é o módulo core do **AMR SYSTEM** — ERP corporativo composto por 3 sistemas ativos:
 - **AMR-Financeiro** — SQL Server, porta API :5015, web :5173
@@ -10,7 +20,7 @@ AMR-Core é o módulo core do **AMR SYSTEM** — ERP corporativo composto por 3 
 - Backend: .NET 10 + Clean Architecture + CQRS (MediatR 12+)
 - ORM: EF Core 9 + SQLite + Migrations
 - Frontend: React 19 + TypeScript + Vite + Bootstrap 5 + TanStack React Query 5
-- Testes: xUnit + Coverlet (26 testes unitários: 13 domínio + 13 application handlers)
+- Testes: xUnit + Coverlet (26 testes: 13 domínio + 13 application handlers)
 - Infra: AWS ECS Fargate + ECR + ALB + EFS | CI/CD: GitHub Actions
 
 ## Arquitetura
@@ -21,22 +31,20 @@ src/
 │   ├── Interfaces/           # IProdutoRepository, IFornecedorRepository, IClienteRepository,
 │   │                         #   IUnidadeMedidaRepository, IPedidoCompraRepository,
 │   │                         #   IPedidoVendaRepository, ISaldoEstoqueRepository, IUnitOfWork
-│   ├── Produtos/Commands/    # CriarProdutoCommand + CriarProdutoHandler
+│   ├── Produtos/Commands/    # CriarProdutoCommand + Handler
 │   ├── Fornecedores/Queries/ # ListarFornecedoresQuery + Handler
 │   ├── Clientes/Queries/     # ListarClientesQuery + Handler
 │   ├── UnidadesMedida/       # ListarUnidadesMedidaQuery + Handler
-│   ├── PedidosCompra/        # Criar, Aprovar, Receber + Listar (commands + queries)
-│   ├── PedidosVenda/         # Criar, Aprovar, Faturar + Listar (commands + queries)
+│   ├── PedidosCompra/        # Criar, Aprovar, Receber, Listar
+│   ├── PedidosVenda/         # Criar, Aprovar, Faturar, Listar
 │   └── DTOs/                 # ProdutoDto, FornecedorDto, ClienteDto, UnidadeMedidaDto, ...
 ├── AMR.Core.Infrastructure/  # EF Core, SQLite, repositories, UoW, migrations
-│   └── Data/Repositories/    # ProdutoRepository, FornecedorRepository, ClienteRepository,
-│                             #   UnidadeMedidaRepository, PedidoCompraRepository,
-│                             #   PedidoVendaRepository, SaldoEstoqueRepository
+│   └── Data/Repositories/    # Produto, Fornecedor, Cliente, UnidadeMedida,
+│                             #   PedidoCompra, PedidoVenda, SaldoEstoque
 ├── AMR.Core.Shared/          # Result<T> e contratos compartilhados
-└── AMR.Core.API/             # Controllers (6), Program.cs, DI, Swagger XML
-    └── Controllers/          # ProdutoController, FornecedorController, ClienteController,
-                              #   UnidadeMedidaController, PedidoCompraController,
-                              #   PedidoVendaController
+└── AMR.Core.API/             # 6 controllers, Program.cs, DI, Swagger XML
+    └── Controllers/          # Produto, Fornecedor, Cliente, UnidadeMedida,
+                              #   PedidoCompra, PedidoVenda
 frontend/
 └── src/
     ├── pages/                # ProdutosPage, PedidosCompraPage, PedidosVendaPage, DashboardPage
@@ -63,13 +71,12 @@ Padrões: Clean Architecture, CQRS+MediatR, Repository Pattern, Unit of Work, DI
 - `Empresa`
 
 ## Padrões de Teste
-- Fakes in-memory (sem Moq, sem NSubstitute) em `tests/.../Application/Fakes/`
+- Fakes in-memory — sem Moq, sem NSubstitute
 - `FakeUnitOfWork` expõe `CommitCount` para verificar número de commits
 - `FakeSaldoEstoqueRepository` expõe `Movimentos` para verificar baixas de estoque
-- IDs atribuídos via reflection (`typeof(Entidade).GetProperty("Id")!.SetValue(...)`)
-- Todos os handlers testados isoladamente sem banco de dados
+- IDs atribuídos via reflection: `typeof(Entidade).GetProperty("Id")!.SetValue(...)`
 
-## Endpoints da API (15 total — 6 controllers)
+## Endpoints da API (15 total)
 | Método | Rota | Descrição |
 |---|---|---|
 | GET | `/api/produto` | Lista produtos ativos |
@@ -116,28 +123,6 @@ Push para `main` dispara `deploy-aws.yml`:
 - **Cluster:** `amr-system` | **Region:** `sa-east-1` | **Account:** `474874558993`
 - **ECR:** `amr-core-api`, `amr-core-web`
 - **EFS:** montado em `/data` para persistência do SQLite
-
-## Estado do Projeto
-
-### Sprint 5 ✅ concluída (01/06/2026)
-- Infra Terraform unificada provisionada na AWS
-- CI/CD GitHub Actions para AMR-Core e AMR-Fábrica
-- 13 testes unitários de domínio passando
-
-### Sprint 6 ⚡ (02/06–24/06/2026) — polish + documentação
-Entregues em 02/06/2026 (adiantado):
-- ✅ Formulários modais "Novo" em Produtos, Pedidos Compra e Pedidos Venda com dropdowns
-- ✅ DashboardPage com KPIs de produtos, compras e vendas (sem novo endpoint — usa React Query)
-- ✅ 3 novos endpoints GET para dropdowns: `/api/fornecedor`, `/api/cliente`, `/api/unidademedida`
-- ✅ Swagger XML docs — 6 controllers, 15 endpoints documentados
-- ✅ 13 novos testes application handlers → 26 testes total
-- ✅ README revisado com badges .NET 10 / React 19 e tabela de endpoints
-- ✅ CLAUDE.md criado e atualizado (este arquivo)
-
-Pendente na Sprint 6:
-- ⬜ CLAUDE.md em AMR-Financeiro e AMR-Fábrica
-- ⬜ AMR-Fábrica re-deploy confirmado em produção
-- ⬜ Documentação final Notion consolidada
 
 ## Troubleshooting Frequente
 | Problema | Solução |
