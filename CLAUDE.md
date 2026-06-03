@@ -108,15 +108,16 @@ Executar em ordem:
 
 ## Próximo Card
 
-**📝 Documentação final Notion — AMR Ecosystem consolidado**
+**📝 Documentação final Notion — AMR Ecosystem consolidado** (itens finais)
 - Sprint: 6 | Prioridade: Alta | Status: `▶️ Em andamento`
 - Notion: https://www.notion.so/374d35f21de58191939acf6c08a6e3e5
-- Itens:
-  - [ ] CLAUDE.md em AMR-Financeiro
-  - [ ] CLAUDE.md em AMR-Fábrica
-  - [ ] AMR-Fábrica re-deploy confirmado em produção
-  - [ ] Backlog Ágil — Sprint 6 atualizado com todos os entregáveis
-  - [ ] AMR SYSTEM — Documentação Completa revisada
+- Itens concluídos (03/06/2026):
+  - [x] AMR-Fábrica re-deploy confirmado em produção ✅
+  - [x] Backlog Ágil — Sprint 6 atualizado com todos os entregáveis ✅
+  - [x] AMR SYSTEM — Documentação Completa revisada (Sprint 6, .NET 10) ✅
+- Itens pendentes (nova sessão com repos respectivos):
+  - [ ] CLAUDE.md em AMR-Financeiro — conteúdo pronto em `docs/CLAUDE-Financeiro.md`
+  - [ ] CLAUDE.md em AMR-Fábrica — conteúdo pronto em `docs/CLAUDE-Fabrica.md`
 
 ---
 
