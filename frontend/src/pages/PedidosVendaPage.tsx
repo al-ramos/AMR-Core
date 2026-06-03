@@ -1,6 +1,9 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { pedidosVendaApi } from '../api/pedidosVendaApi'
+import { clienteApi } from '../api/clienteApi'
+import { usePagination } from '../hooks/usePagination'
+import { Pagination } from '../components/Pagination'
 
 const EMPRESA_ID = 1
 
@@ -39,6 +42,17 @@ export default function PedidosVendaPage() {
     queryFn:  () => pedidosVendaApi.listar(EMPRESA_ID, filtroStatus || undefined),
   })
 
+  // Busca clientes para resolver nomes
+  const { data: clientes = [] } = useQuery({
+    queryKey: ['clientes'],
+    queryFn: clienteApi.listar,
+  })
+
+  const clienteMap = useMemo(
+    () => Object.fromEntries(clientes.map(c => [c.id, c.nome])),
+    [clientes],
+  )
+
   const { data: detalhe } = useQuery({
     queryKey: ['pedido-venda', detalheId],
     queryFn:  () => pedidosVendaApi.obter(detalheId!),
@@ -55,7 +69,9 @@ export default function PedidosVendaPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['pedidos-venda'] }),
   })
 
-  const total     = pedidos.reduce((s, p) => s + p.total, 0)
+  const { paged, page, pageSize, totalPages, total, changePage, changePageSize } = usePagination(pedidos)
+
+  const totalVal  = pedidos.reduce((s, p) => s + p.total, 0)
   const aprovados = pedidos.filter(p => p.status === 'Aprovado').length
   const faturados = pedidos.filter(p => p.status === 'Faturado').length
 
@@ -63,10 +79,10 @@ export default function PedidosVendaPage() {
     <>
       <div className="row g-3 mb-4">
         {[
-          { label: 'Total de pedidos',  value: pedidos.length, color: '#212529'  },
-          { label: 'Aprovados',          value: aprovados,      color: '#1565c0'  },
-          { label: 'Faturados',          value: faturados,      color: '#2e7d32'  },
-          { label: 'Valor total',        value: brl(total),     color: '#1565c0'  },
+          { label: 'Total de pedidos', value: pedidos.length, color: '#212529' },
+          { label: 'Aprovados',        value: aprovados,      color: '#1565c0' },
+          { label: 'Faturados',        value: faturados,      color: '#2e7d32' },
+          { label: 'Valor total',      value: brl(totalVal),  color: '#1565c0' },
         ].map(m => (
           <div key={m.label} className="col-md-3">
             <div className="amr-metric-card">
@@ -84,7 +100,7 @@ export default function PedidosVendaPage() {
           </span>
           <select
             value={filtroStatus}
-            onChange={e => setFiltroStatus(e.target.value)}
+            onChange={e => { setFiltroStatus(e.target.value); changePage(1) }}
             className="form-select form-select-sm"
             style={{ width: 160 }}
           >
@@ -120,60 +136,68 @@ export default function PedidosVendaPage() {
         )}
 
         {!isLoading && pedidos.length > 0 && (
-          <div className="table-responsive">
-            <table className="table table-hover table-sm mb-0" style={{ fontSize: 13 }}>
-              <thead className="table-light">
-                <tr>
-                  <th>#</th>
-                  <th>Cliente</th>
-                  <th>Emissao</th>
-                  <th>Aprovacao</th>
-                  <th>Faturamento</th>
-                  <th>Status</th>
-                  <th className="text-end">Total</th>
-                  <th className="text-end">Acoes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pedidos.map(p => (
-                  <tr key={p.id}>
-                    <td className="font-monospace text-muted" style={{ fontSize: 12 }}>#{p.id}</td>
-                    <td>Cliente {p.clienteId}</td>
-                    <td className="text-nowrap">{fmt(p.dataEmissao)}</td>
-                    <td className="text-nowrap text-muted">{fmt(p.dataAprovacao)}</td>
-                    <td className="text-nowrap text-muted">{fmt(p.dataFaturamento)}</td>
-                    <td><StatusBadge status={p.status} /></td>
-                    <td className="text-end fw-semibold">{brl(p.total)}</td>
-                    <td className="text-end text-nowrap">
-                      <button
-                        className="btn btn-sm btn-outline-secondary me-1"
-                        style={{ fontSize: 11 }}
-                        onClick={() => setDetalheId(detalheId === p.id ? null : p.id)}
-                      >
-                        <i className="bi bi-eye me-1"></i>Itens
-                      </button>
-                      {p.status === 'Rascunho' && (
-                        <button
-                          className="btn btn-sm btn-outline-primary me-1"
-                          style={{ fontSize: 11 }}
-                          disabled={aprovar.isPending}
-                          onClick={() => aprovar.mutate(p.id)}
-                        >Aprovar</button>
-                      )}
-                      {p.status === 'Aprovado' && (
-                        <button
-                          className="btn btn-sm btn-outline-success"
-                          style={{ fontSize: 11 }}
-                          disabled={faturar.isPending}
-                          onClick={() => faturar.mutate(p.id)}
-                        >Faturar</button>
-                      )}
-                    </td>
+          <>
+            <div className="table-responsive">
+              <table className="table table-hover table-sm mb-0" style={{ fontSize: 13 }}>
+                <thead className="table-light">
+                  <tr>
+                    <th>#</th>
+                    <th>Cliente</th>
+                    <th>Emissão</th>
+                    <th>Aprovação</th>
+                    <th>Faturamento</th>
+                    <th>Status</th>
+                    <th className="text-end">Total</th>
+                    <th className="text-end">Ações</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {paged.map(p => (
+                    <tr key={p.id}>
+                      <td className="font-monospace text-muted" style={{ fontSize: 12 }}>#{p.id}</td>
+                      <td className="fw-medium">
+                        {clienteMap[p.clienteId] ?? `Cliente ${p.clienteId}`}
+                      </td>
+                      <td className="text-nowrap">{fmt(p.dataEmissao)}</td>
+                      <td className="text-nowrap text-muted">{fmt(p.dataAprovacao)}</td>
+                      <td className="text-nowrap text-muted">{fmt(p.dataFaturamento)}</td>
+                      <td><StatusBadge status={p.status} /></td>
+                      <td className="text-end fw-semibold">{brl(p.total)}</td>
+                      <td className="text-end text-nowrap">
+                        <button
+                          className="btn btn-sm btn-outline-secondary me-1"
+                          style={{ fontSize: 11 }}
+                          onClick={() => setDetalheId(detalheId === p.id ? null : p.id)}
+                        >
+                          <i className="bi bi-eye me-1"></i>Itens
+                        </button>
+                        {p.status === 'Rascunho' && (
+                          <button
+                            className="btn btn-sm btn-outline-primary me-1"
+                            style={{ fontSize: 11 }}
+                            disabled={aprovar.isPending}
+                            onClick={() => aprovar.mutate(p.id)}
+                          >Aprovar</button>
+                        )}
+                        {p.status === 'Aprovado' && (
+                          <button
+                            className="btn btn-sm btn-outline-success"
+                            style={{ fontSize: 11 }}
+                            disabled={faturar.isPending}
+                            onClick={() => faturar.mutate(p.id)}
+                          >Faturar</button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <Pagination
+              page={page} totalPages={totalPages} pageSize={pageSize} total={total}
+              onPage={changePage} onPageSize={changePageSize}
+            />
+          </>
         )}
       </div>
 
