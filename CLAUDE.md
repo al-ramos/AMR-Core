@@ -1,5 +1,12 @@
 # AMR-Core — Contexto para Claude Code
 
+## Identidade do módulo
+Módulo core do AMR SYSTEM — gestão de produtos, estoque, pedidos de compra e venda.
+- **API local**: http://localhost:5001/swagger
+- **Web local**: http://localhost:5175
+- **ALB (AWS)**: listener `:8081` · serviços ECS `amr-core-api` + `amr-core-web`
+- **Banco**: SQLite via EF Core 10 (EFS `/data` em produção)
+
 ## Ecossistema
 AMR-Core é o módulo core do **AMR SYSTEM** — ERP corporativo composto por 3 sistemas ativos:
 - **AMR-Financeiro** — SQL Server, porta API :5015, web :5173
@@ -124,6 +131,15 @@ Executar em ordem:
 > - Itens já concluídos: AMR-Fábrica re-deploy ✅, Backlog Sprint 6 ✅, Docs revisadas ✅, MovimentosEstoque ✅
 
 ---
+
+## Páginas frontend
+| Rota | Página | Funcionalidades |
+|---|---|---|
+| `/dashboard` | `DashboardPage` | KPIs de produtos, compras e vendas |
+| `/produtos` | `ProdutosPage` | CRUD completo: criar, editar, inativar/reativar |
+| `/pedidos/compra` | `PedidosCompraPage` | Criar PC, cancelar, fluxo Rascunho → Aprovado → Recebido |
+| `/pedidos/venda` | `PedidosVendaPage` | Criar PV, cancelar, fluxo Rascunho → Aprovado → Faturado |
+| `/estoque/movimentos` | `MovimentosEstoquePage` | Listagem com filtros, badges Entrada/Saída/Ajuste |
 
 ## Troubleshooting Frequente
 | Problema | Solução |
