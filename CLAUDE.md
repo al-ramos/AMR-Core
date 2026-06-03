@@ -63,11 +63,17 @@ Push para `main` dispara `deploy-aws.yml`:
 - **ECR:** `amr-core-api`, `amr-core-web`
 - **EFS:** montado em `/data` para persistência do SQLite
 
-## Estado do Projeto — Sprint 5 concluída (01/06/2026)
+## Estado do Projeto — Sprint 6 ativo (02/06–24/06/2026)
 - Infra Terraform unificada provisionada na AWS
 - CI/CD GitHub Actions funcionando para AMR-Core e AMR-Fábrica
-- 13 testes unitários passando
-- **Sprint 6 (11/06–24/06):** documentação final + polish
+- 26 testes unitários passando (13 domain + 13 application handlers)
+- **Sprint 6 concluído no AMR-Core:**
+  - Formulários de criação: Novo Produto, Novo Pedido de Compra, Novo Pedido de Venda (modais com dropdowns)
+  - Dashboard `/dashboard` com KPIs de produtos, compras e vendas (`DashboardPage.tsx`)
+  - Endpoints GET /api/fornecedor, /api/cliente, /api/unidademedida (para dropdowns)
+  - Swagger XML docs — 6 controllers documentados
+  - README revisado para .NET 10 / React 19
+- **Frontend — páginas implementadas:** `ProdutosPage`, `PedidosCompraPage`, `PedidosVendaPage`, `DashboardPage`
 
 ## Troubleshooting Frequente
 | Problema | Solução |
