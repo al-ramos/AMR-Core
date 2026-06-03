@@ -75,6 +75,17 @@ Push para `main` dispara `deploy-aws.yml`:
   - README revisado para .NET 10 / React 19
 - **Frontend — páginas implementadas:** `ProdutosPage`, `PedidosCompraPage`, `PedidosVendaPage`, `DashboardPage`
 
+## Protocolo de Encerramento de Card
+
+Ao concluir qualquer card/tarefa, executar nesta ordem:
+
+1. **Git** — commit descritivo + `git push -u origin <branch>`
+2. **Notion card** — atualizar `Entrega` para a data real e adicionar referência do commit no conteúdo da página
+3. **Kanban** — confirmar que `Status` está `✅ Concluído` (ou avançar se necessário)
+4. **CLAUDE.md** — atualizar seção `Estado do Projeto` se houve mudança relevante de contexto
+
+---
+
 ## Troubleshooting Frequente
 | Problema | Solução |
 |---|---|
