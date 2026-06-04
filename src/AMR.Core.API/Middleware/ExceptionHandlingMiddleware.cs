@@ -1,3 +1,4 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AMR.Core.API.Middleware;
@@ -19,6 +20,24 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
 
     private Task HandleAsync(HttpContext ctx, Exception ex)
     {
+        ctx.Response.ContentType = "application/problem+json";
+
+        if (ex is ValidationException ve)
+        {
+            var errors = ve.Errors
+                .GroupBy(e => e.PropertyName)
+                .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray());
+
+            var vp = new ValidationProblemDetails(errors)
+            {
+                Status   = StatusCodes.Status400BadRequest,
+                Title    = "Validação inválida",
+                Instance = ctx.Request.Path,
+            };
+            ctx.Response.StatusCode = StatusCodes.Status400BadRequest;
+            return ctx.Response.WriteAsJsonAsync(vp);
+        }
+
         var (status, title) = ex switch
         {
             ArgumentException         => (StatusCodes.Status400BadRequest,          "Requisição inválida"),
@@ -39,8 +58,7 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
             Instance = ctx.Request.Path,
         };
 
-        ctx.Response.ContentType = "application/problem+json";
-        ctx.Response.StatusCode  = status;
+        ctx.Response.StatusCode = status;
         return ctx.Response.WriteAsJsonAsync(problem);
     }
 }

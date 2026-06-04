@@ -1,4 +1,6 @@
+using FluentValidation;
 using MediatR;
+using AMR.Core.Application.Behaviors;
 using AMR.Core.Infrastructure;
 using AMR.Core.Infrastructure.Data;
 using AMR.Core.API.Middleware;
@@ -27,10 +29,14 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new() { Title = "AMR.Core API", Version = "v1" });
 });
 
-// Application — MediatR
+// Application — MediatR + ValidationBehavior
+var appAssembly = typeof(AMR.Core.Application.Produtos.Commands.CriarProdutoCommand).Assembly;
+builder.Services.AddValidatorsFromAssembly(appAssembly);
 builder.Services.AddMediatR(cfg =>
-    cfg.RegisterServicesFromAssembly(
-        typeof(AMR.Core.Application.Produtos.Commands.CriarProdutoCommand).Assembly));
+{
+    cfg.RegisterServicesFromAssembly(appAssembly);
+    cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+});
 
 // Infrastructure — DbContext + Repositórios
 builder.Services.AddInfrastructure(builder.Configuration);
