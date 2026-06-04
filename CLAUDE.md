@@ -84,6 +84,7 @@ Push para `main` dispara `deploy-aws.yml`:
   - Domínio: `Produto.Atualizar()`, commands Inativar/Reativar/Cancelar
   - **Polish UX (03/06/2026):** busca por nome/SKU em Produtos, paginação nas 3 tabelas, nomes reais de Fornecedor/Cliente (`8195b46`)
   - **ErrorHandling AMR-Core (03/06/2026):** ExceptionHandlingMiddleware + ProblemDetails RFC 7807, ResultExtensions.ToActionResult(), Swagger com 400/404/500 (`ede3e85`)
+  - **FluentValidation AMR-Core (04/06/2026):** ValidationBehavior (MediatR pipeline) + validators para CriarProduto, AtualizarProduto, CriarPedidoCompra, CriarPedidoVenda (`4dad4dc`)
 - **Frontend — páginas implementadas:** `ProdutosPage`, `PedidosCompraPage`, `PedidosVendaPage`, `DashboardPage`, `MovimentosEstoquePage`
   - Todas com modais de criação, ações de workflow, edição/cancelamento, paginação e busca
 
@@ -121,12 +122,15 @@ Executar em ordem:
 
 ## Próximo Card
 
-**🛡️ Consolidar ErrorHandling — ProblemDetails em AMR-Financeiro e AMR-Fábrica** (Sprint 6)
+**✅ FluentValidation reusável — replicar em AMR-Financeiro e AMR-Fábrica** (Sprint 6)
 - Sprint: 6 | Prioridade: Alta | Status: `▶️ Em andamento`
-- Notion: https://app.notion.com/p/375d35f21de58122a8c8cd9c22a79d67
-- AMR-Core ✅ concluído (`ede3e85`) — replicar em AMR-Financeiro e AMR-Fábrica
+- AMR-Core ✅ concluído (`4dad4dc`) — replicar em AMR-Financeiro e AMR-Fábrica
 - Requer sessões Claude Code web com os repos `al-ramos/AMR-Financeiro` e `al-ramos/AMR-Forms-Fabrica`
-- Ver texto de instruções de replicação na sessão 03/06/2026
+- Padrão: ValidationBehavior pipeline + validators por command + ExceptionHandlingMiddleware cobre ValidationException
+
+> **Cards concluídos nesta sessão (04/06/2026):**
+> - 🛡️ ErrorHandling ProblemDetails — AMR-Core ✅ (`ede3e85`) + AMR-Financeiro ✅ + AMR-Fábrica ✅ (sessões externas)
+> - ✅ FluentValidation AMR-Core — `4dad4dc`
 
 > **Card bloqueado (precisa de outra sessão):**
 > 📝 Documentação final — CLAUDE.md em AMR-Financeiro e AMR-Fábrica
