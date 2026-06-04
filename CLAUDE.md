@@ -82,8 +82,10 @@ Push para `main` dispara `deploy-aws.yml`:
   - **CRUD completo (03/06/2026):** Produto (criar/editar/inativar/reativar), PC/PV (criar/cancelar)
   - Endpoints GET /api/fornecedor, /api/cliente, /api/unidademedida (dropdowns)
   - Domínio: `Produto.Atualizar()`, commands Inativar/Reativar/Cancelar
+  - **Polish UX (03/06/2026):** busca por nome/SKU em Produtos, paginação nas 3 tabelas, nomes reais de Fornecedor/Cliente (`8195b46`)
+  - **ErrorHandling AMR-Core (03/06/2026):** ExceptionHandlingMiddleware + ProblemDetails RFC 7807, ResultExtensions.ToActionResult(), Swagger com 400/404/500 (`ede3e85`)
 - **Frontend — páginas implementadas:** `ProdutosPage`, `PedidosCompraPage`, `PedidosVendaPage`, `DashboardPage`, `MovimentosEstoquePage`
-  - Todas com modais de criação, ações de workflow e botões de edição/cancelamento
+  - Todas com modais de criação, ações de workflow, edição/cancelamento, paginação e busca
 
 ## Protocolo de Encerramento de Card
 
@@ -119,16 +121,18 @@ Executar em ordem:
 
 ## Próximo Card
 
-**🔧 Polish AMR-Core — Filtros, paginação e UX das páginas** (Sprint 6)
-- Sprint: 6 | Prioridade: Média | Status: `🔲 Backlog`
-- Sugestões: filtro por nome/SKU em Produtos, paginação nas tabelas, nome do Fornecedor/Cliente nas linhas de pedido (hoje exibe "Fornecedor 1")
+**🛡️ Consolidar ErrorHandling — ProblemDetails em AMR-Financeiro e AMR-Fábrica** (Sprint 6)
+- Sprint: 6 | Prioridade: Alta | Status: `▶️ Em andamento`
+- Notion: https://app.notion.com/p/375d35f21de58122a8c8cd9c22a79d67
+- AMR-Core ✅ concluído (`ede3e85`) — replicar em AMR-Financeiro e AMR-Fábrica
+- Requer sessões Claude Code web com os repos `al-ramos/AMR-Financeiro` e `al-ramos/AMR-Forms-Fabrica`
+- Ver texto de instruções de replicação na sessão 03/06/2026
 
 > **Card bloqueado (precisa de outra sessão):**
 > 📝 Documentação final — CLAUDE.md em AMR-Financeiro e AMR-Fábrica
 > - Notion: https://www.notion.so/374d35f21de58191939acf6c08a6e3e5
 > - Conteúdo pronto em `docs/CLAUDE-Financeiro.md` e `docs/CLAUDE-Fabrica.md`
 > - Requer sessões Claude Code web com os repos `al-ramos/AMR-Financeiro` e `al-ramos/AMR-Forms-Fabrica`
-> - Itens já concluídos: AMR-Fábrica re-deploy ✅, Backlog Sprint 6 ✅, Docs revisadas ✅, MovimentosEstoque ✅
 
 ---
 
