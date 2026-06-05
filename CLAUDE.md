@@ -86,6 +86,7 @@ Push para `main` dispara `deploy-aws.yml`:
   - **ErrorHandling AMR-Core (03/06/2026):** ExceptionHandlingMiddleware + ProblemDetails RFC 7807, ResultExtensions.ToActionResult(), Swagger com 400/404/500 (`ede3e85`)
   - **FluentValidation AMR-Core (04/06/2026):** ValidationBehavior (MediatR pipeline) + validators para CriarProduto, AtualizarProduto, CriarPedidoCompra, CriarPedidoVenda (`4dad4dc`)
   - **Security hardening (04/06/2026):** AWS Account ID removido do deploy-aws.yml → `${{ secrets.AWS_ACCOUNT_ID }}`; .gitignore cobre appsettings.Production.json + *.env.local + terraform.tfvars; LICENSE BSL 1.1 adicionada; appsettings.Production.json removido do tracking (`164511b`)
+  - **Recebimento de Mercadorias (05/06/2026):** OrdemRecebimento + ItemRecebimento, workflow Aguardando→Recebendo→Concluido, 5 endpoints, RecebimentoPage com modal item a item (`9c60eb6`) — pendente: `dotnet ef migrations add RecebimentoMercadorias`
 - **Frontend — páginas implementadas:** `ProdutosPage`, `PedidosCompraPage`, `PedidosVendaPage`, `DashboardPage`, `MovimentosEstoquePage`
   - Todas com modais de criação, ações de workflow, edição/cancelamento, paginação e busca
 
