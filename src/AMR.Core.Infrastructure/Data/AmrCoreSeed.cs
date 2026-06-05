@@ -174,5 +174,27 @@ public static class AmrCoreSeed
 
             await ctx.SaveChangesAsync();
         }
+
+        // ── Ordens de Recebimento ─────────────────────────────────────────────
+        if (!await ctx.OrdensRecebimento.AnyAsync())
+        {
+            var pcs = await ctx.PedidosCompra
+                .Include(p => p.Itens)
+                .ToListAsync();
+
+            // OR-001 — Concluído (para PC-001 que já está Recebido)
+            var pc1 = pcs.FirstOrDefault(p => p.Status == AMR.Core.Domain.Enums.StatusPedidoCompra.Recebido);
+            if (pc1 is not null)
+            {
+                var or1 = OrdemRecebimento.Criar(pc1.Id, pc1.Itens.Select(i => (i.ProdutoId, i.Quantidade)));
+                or1.IniciarRecebimento();
+                foreach (var item in or1.Itens)
+                    item.Receber(item.QntEsperada);
+                or1.Concluir();
+                ctx.OrdensRecebimento.Add(or1);
+            }
+
+            await ctx.SaveChangesAsync();
+        }
     }
 }
