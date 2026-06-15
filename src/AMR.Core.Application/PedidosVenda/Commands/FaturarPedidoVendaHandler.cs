@@ -9,7 +9,8 @@ namespace AMR.Core.Application.PedidosVenda.Commands;
 public class FaturarPedidoVendaHandler(
     IPedidoVendaRepository vendaRepo,
     ISaldoEstoqueRepository estoqueRepo,
-    IUnitOfWork uow)
+    IUnitOfWork uow,
+    ITmsApiClient tmsApiClient)
     : IRequestHandler<FaturarPedidoVendaCommand, Result<PedidoVendaDto>>
 {
     public async Task<Result<PedidoVendaDto>> Handle(FaturarPedidoVendaCommand cmd, CancellationToken ct)
@@ -42,6 +43,21 @@ public class FaturarPedidoVendaHandler(
 
         await vendaRepo.AtualizarAsync(pedido, ct);
         await uow.CommitAsync(ct);
+
+        // Fire-and-forget resiliente — falha no TMS não bloqueia o Core
+        var tmsDto = new CriarOrdemTmsDto(
+            Origem:           "AMR-Core",
+            Destino:          $"Cliente:{pedido.ClienteId}",
+            ClienteId:        pedido.ClienteId.ToString(),
+            TransportadoraId: null,
+            PesoKg:           0.001m,
+            VolumeM3:         0.001m,
+            ValorFrete:       0m,
+            PrevisaoEntrega:  null,
+            PedidoCoreId:     pedido.Id.ToString()
+        );
+        _ = Task.Run(async () =>
+            await tmsApiClient.CriarOrdemDeEntregaAsync(tmsDto), CancellationToken.None);
 
         return Result.Ok(CriarPedidoVendaHandler.ToDto(pedido));
     }

@@ -149,3 +149,31 @@ Executar em ordem:
 | MediatR não resolve handlers | Usar native registration (`.AddMediatR(...)`), remover `MediatR.Extensions` |
 | Vite proxy não funciona | Atualizar `vite.config.ts` com a URL correta do backend |
 | AWS CLI no Git Bash | Prefixar com `MSYS_NO_PATHCONV=1 aws ecs ...` |
+
+## Integração AMR-Core → AMR-TMS
+
+Ao **faturar** um PedidoVenda (`FaturarPedidoVendaHandler`), o Core cria automaticamente uma `OrdemDeEntrega` no AMR-TMS (Node.js :3002) via HTTP fire-and-forget.
+
+### Camadas criadas
+- `Application/Interfaces/ITmsApiClient.cs` — contrato
+- `Application/DTOs/CriarOrdemTmsDto.cs` — DTO de saída
+- `Infrastructure/ExternalServices/TmsApiClient.cs` — cliente HTTP real (Polly: 3 retries exponencial)
+- `Infrastructure/ExternalServices/LocalTmsApiClient.cs` — stub para Development (sem TMS rodando)
+
+### DI
+- **Development**: `LocalTmsApiClient` (singleton, sem HTTP)
+- **Production/Staging**: `TmsApiClient` via `AddHttpClient` + Polly
+
+### Config
+```json
+"TmsApi": { "BaseUrl": "http://localhost:3002" }
+```
+
+### Comportamento
+- Falha no TMS **não bloqueia** o faturamento — exceções são logadas como Warning
+- `pedidoCoreId` (string) trafega no payload para rastreamento no TMS
+
+### Testes
+- `tests/AMR.Core.Application.Tests/PedidosVenda/FaturarPedidoVendaHandlerTests.cs`
+  - Cenário 1: TMS disponível → pedido faturado + ordem criada
+  - Cenário 2: TMS offline → pedido faturado mesmo assim

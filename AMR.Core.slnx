@@ -8,5 +8,6 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/AMR.Core.Domain.Tests/AMR.Core.Domain.Tests.csproj" />
+    <Project Path="tests/AMR.Core.Application.Tests/AMR.Core.Application.Tests.csproj" />
   </Folder>
 </Solution>

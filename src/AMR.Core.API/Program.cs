@@ -30,8 +30,8 @@ builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(
         typeof(AMR.Core.Application.Produtos.Commands.CriarProdutoCommand).Assembly));
 
-// Infrastructure — DbContext + Repositórios
-builder.Services.AddInfrastructure(builder.Configuration);
+// Infrastructure — DbContext + Repositórios + TmsApiClient
+builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
 
 // ── Rate Limiting — 100 req/min por IP ────────────────────────────────────────
 builder.Services.AddRateLimiter(options =>
