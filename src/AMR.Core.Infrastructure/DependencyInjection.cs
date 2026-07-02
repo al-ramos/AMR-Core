@@ -49,6 +49,25 @@ public static class DependencyInjection
                     .WaitAndRetryAsync(3, attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt))));
         }
 
+        // ── Compras API Client ────────────────────────────────────────────────
+        if (env.IsDevelopment())
+        {
+            services.AddSingleton<IComprasApiClient, LocalComprasApiClient>();
+        }
+        else
+        {
+            services
+                .AddHttpClient<IComprasApiClient, ComprasApiClient>(client =>
+                {
+                    client.BaseAddress = new Uri(
+                        configuration["ComprasApi:BaseUrl"] ?? "http://localhost:3001");
+                    client.Timeout = TimeSpan.FromSeconds(10);
+                })
+                .AddPolicyHandler(HttpPolicyExtensions
+                    .HandleTransientHttpError()
+                    .WaitAndRetryAsync(3, attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt))));
+        }
+
         return services;
     }
 }

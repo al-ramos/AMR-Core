@@ -177,3 +177,33 @@ Ao **faturar** um PedidoVenda (`FaturarPedidoVendaHandler`), o Core cria automat
 - `tests/AMR.Core.Application.Tests/PedidosVenda/FaturarPedidoVendaHandlerTests.cs`
   - Cenário 1: TMS disponível → pedido faturado + ordem criada
   - Cenário 2: TMS offline → pedido faturado mesmo assim
+  - Cenário 3: estoque abaixo do mínimo → sugestão de compra disparada
+  - Cenário 4: TMS offline + estoque abaixo do mínimo → sugestão de compra ainda é disparada
+
+## Integração AMR-Core → AMR-Compras
+
+No mesmo `FaturarPedidoVendaHandler`, após a baixa de estoque de cada item, se o saldo resultante
+ficar abaixo do `Produto.EstoqueMinimo`, o Core dispara automaticamente uma sugestão de reposição
+para o AMR-Compras (Node.js :3001) via HTTP fire-and-forget.
+
+### Camadas criadas
+- `Application/Interfaces/IComprasApiClient.cs` — contrato
+- `Application/DTOs/SugerirPedidoCompraDto.cs` — DTO de saída (`ProdutoId`, `NomeProduto`, `QuantidadeSugerida`, `Unidade`)
+- `Infrastructure/ExternalServices/ComprasApiClient.cs` — cliente HTTP real (Polly: 3 retries exponencial), `POST /api/pedidos-compra/sugestao`
+- `Infrastructure/ExternalServices/LocalComprasApiClient.cs` — stub para Development (sem Compras rodando)
+
+### DI
+- **Development**: `LocalComprasApiClient` (singleton, sem HTTP)
+- **Production/Staging**: `ComprasApiClient` via `AddHttpClient` + Polly
+
+### Config
+```json
+"ComprasApi": { "BaseUrl": "http://localhost:3001" }
+```
+
+### Comportamento
+- `QuantidadeSugerida = EstoqueMinimo - novoSaldo` (repõe até o mínimo)
+- Falha no Compras **não bloqueia** o faturamento — exceções são logadas como Warning
+- No lado do AMR-Compras, a sugestão é persistida como `SugestaoPedidoCompra` (status `PENDENTE`)
+  — não cria um `PedidoCompra` automaticamente, pois este exige um `fornecedorId` que a sugestão
+  não possui; um comprador converte a sugestão manualmente depois de escolher o fornecedor.

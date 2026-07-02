@@ -1,6 +1,7 @@
 using MediatR;
 using AMR.Core.Application.DTOs;
 using AMR.Core.Application.Interfaces;
+using AMR.Core.Domain.Entities;
 using AMR.Core.Domain.Enums;
 using AMR.Core.Shared.Results;
 
@@ -9,8 +10,10 @@ namespace AMR.Core.Application.PedidosVenda.Commands;
 public class FaturarPedidoVendaHandler(
     IPedidoVendaRepository vendaRepo,
     ISaldoEstoqueRepository estoqueRepo,
+    IProdutoRepository produtoRepo,
     IUnitOfWork uow,
-    ITmsApiClient tmsApiClient)
+    ITmsApiClient tmsApiClient,
+    IComprasApiClient comprasApiClient)
     : IRequestHandler<FaturarPedidoVendaCommand, Result<PedidoVendaDto>>
 {
     public async Task<Result<PedidoVendaDto>> Handle(FaturarPedidoVendaCommand cmd, CancellationToken ct)
@@ -33,12 +36,17 @@ public class FaturarPedidoVendaHandler(
         catch (InvalidOperationException ex) { return Result.Falha<PedidoVendaDto>(ex.Message); }
 
         // Baixa estoque
+        var produtosAbaixoDoMinimo = new List<(Produto Produto, decimal NovoSaldo)>();
         foreach (var item in pedido.Itens)
         {
             var saldo = await estoqueRepo.ObterPorProdutoAsync(item.ProdutoId, pedido.EmpresaId, ct);
             var movimento = saldo!.Movimentar(TipoMovimentoEstoque.Saida, item.Quantidade, $"PV#{pedido.Id}");
             await estoqueRepo.AdicionarMovimentoAsync(movimento, ct);
             await estoqueRepo.AtualizarAsync(saldo, ct);
+
+            var produto = await produtoRepo.ObterPorIdAsync(item.ProdutoId, ct);
+            if (produto is not null && saldo.EstoqueAbaixoDoMinimo(produto.EstoqueMinimo))
+                produtosAbaixoDoMinimo.Add((produto, saldo.Quantidade));
         }
 
         await vendaRepo.AtualizarAsync(pedido, ct);
@@ -58,6 +66,19 @@ public class FaturarPedidoVendaHandler(
         );
         _ = Task.Run(async () =>
             await tmsApiClient.CriarOrdemDeEntregaAsync(tmsDto), CancellationToken.None);
+
+        // Fire-and-forget resiliente — sugere reposição no AMR-Compras quando estoque fica abaixo do mínimo
+        foreach (var (produto, novoSaldo) in produtosAbaixoDoMinimo)
+        {
+            var sugestaoDto = new SugerirPedidoCompraDto(
+                ProdutoId:          produto.Id.ToString(),
+                NomeProduto:        produto.Nome,
+                QuantidadeSugerida: (float)(produto.EstoqueMinimo - novoSaldo),
+                Unidade:            produto.UnidadeMedida?.Sigla ?? "UN"
+            );
+            _ = Task.Run(async () =>
+                await comprasApiClient.SugerirPedidoCompraAsync(sugestaoDto), CancellationToken.None);
+        }
 
         return Result.Ok(CriarPedidoVendaHandler.ToDto(pedido));
     }
