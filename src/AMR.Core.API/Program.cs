@@ -1,6 +1,7 @@
 using MediatR;
 using AMR.Core.Infrastructure;
 using AMR.Core.Infrastructure.Data;
+using AMR.Core.API.Telemetry;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -32,6 +33,9 @@ builder.Services.AddMediatR(cfg =>
 
 // Infrastructure — DbContext + Repositórios + TmsApiClient
 builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
+
+// Observabilidade — OpenTelemetry
+builder.Services.AddAmrTelemetry(builder.Configuration, "amr-core");
 
 // ── Rate Limiting — 100 req/min por IP ────────────────────────────────────────
 builder.Services.AddRateLimiter(options =>
