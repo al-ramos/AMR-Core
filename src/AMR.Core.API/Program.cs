@@ -72,7 +72,17 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AmrCoreDbContext>();
-    db.Database.Migrate();
+
+    if (app.Environment.IsDevelopment())
+    {
+        await db.Database.EnsureDeletedAsync();
+        await db.Database.EnsureCreatedAsync();
+    }
+    else
+    {
+        await db.Database.MigrateAsync();
+    }
+
     await AmrCoreSeed.AplicarAsync(db);
 }
 
