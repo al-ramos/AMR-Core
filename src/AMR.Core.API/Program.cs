@@ -62,13 +62,23 @@ builder.Services.AddRateLimiter(options =>
     };
 });
 
-// CORS — permite o frontend e outros módulos chamarem esta API
+// CORS — as origens vêm de Cors:AllowedOrigins, aceito como string única
+// ou como array. Nenhuma origem fica fixada no código: o ALB
+// rds-forms-fabrica-alb-558362351, que estava aqui, não existe mais na conta.
+var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? (builder.Configuration["Cors:AllowedOrigins"] is { Length: > 0 } origemUnica
+        ? new[] { origemUnica }
+        : Array.Empty<string>());
+
 builder.Services.AddCors(opts =>
-    opts.AddPolicy("RdsFabrica", policy =>
-        policy.WithOrigins(
-                builder.Configuration["Cors:AllowedOrigins"] ?? "*")
-              .AllowAnyMethod()
-              .AllowAnyHeader()));
+    opts.AddPolicy("AmrCore", policy =>
+    {
+        // Sem origem configurada a política não libera nenhuma. O fallback
+        // anterior era WithOrigins("*"), que o ASP.NET Core trata como a
+        // origem literal "*" — nunca liberou nada de fato.
+        if (corsOrigins.Length > 0)
+            policy.WithOrigins(corsOrigins).AllowAnyMethod().AllowAnyHeader();
+    }));
 
 var app = builder.Build();
 
@@ -108,7 +118,7 @@ app.Use(async (ctx, next) =>
     await next();
 });
 
-app.UseCors("RdsFabrica");
+app.UseCors("AmrCore");
 app.UseRateLimiter();
 app.UseAuthorization();
 app.MapControllers();
