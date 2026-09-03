@@ -1,0 +1,29 @@
+# O Core era o unico modulo sem compose — nao havia como subir API e web juntos
+# fora do dotnet run.
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: amr_core_api
+    ports:
+      - "5001:8080"
+    volumes:
+      - core_data:/app/data
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__AmrCore=Data Source=/app/data/amr_core.db
+      - Cors__AllowedOrigins=http://localhost:5175
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: amr_core_web
+    ports:
+      - "5175:80"
+    depends_on:
+      - api
+
+volumes:
+  core_data:
