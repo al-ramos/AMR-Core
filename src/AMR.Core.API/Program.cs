@@ -135,6 +135,27 @@ app.Use(async (ctx, next) =>
 app.UseCors("AmrCore");
 app.UseRateLimiter();
 app.UseAuthorization();
+// Health checks — o target group do ALB precisa de um caminho que responda sem
+// depender de nada. /health e liveness pura (o processo subiu); /health/ready
+// verifica o banco, que e a unica dependencia externa da API hoje.
+app.MapGet("/health", () => Results.Ok(new { status = "healthy" }))
+   .ExcludeFromDescription();
+
+app.MapGet("/health/ready", async (IServiceProvider sp, CancellationToken ct) =>
+{
+    try
+    {
+        using var scope = sp.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AmrCoreDbContext>();
+        await db.Database.CanConnectAsync(ct);
+        return Results.Ok(new { status = "ready" });
+    }
+    catch (Exception ex)
+    {
+        return Results.Json(new { status = "degraded", detail = ex.Message }, statusCode: 503);
+    }
+}).ExcludeFromDescription();
+
 app.MapControllers();
 
 app.Run();
