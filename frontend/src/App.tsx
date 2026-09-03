@@ -4,15 +4,17 @@ import PedidosVendaPage from './pages/PedidosVendaPage'
 import PedidosCompraPage from './pages/PedidosCompraPage'
 import DashboardPage from './pages/DashboardPage'
 import MovimentosEstoquePage from './pages/MovimentosEstoquePage'
+import RecebimentoPage from './pages/RecebimentoPage'
 
 const NAV = [
   { section: 'Estoque', items: [
-    { to: '/',                  icon: 'bi-box-seam',          label: 'Produtos',            end: true  },
-    { to: '/estoque/movimentos', icon: 'bi-arrow-left-right', label: 'Movimentos',          end: false },
+    { to: '/',                   icon: 'bi-box-seam',          label: 'Produtos',            end: true  },
+    { to: '/estoque/movimentos', icon: 'bi-arrow-left-right',  label: 'Movimentos',          end: false },
   ]},
   { section: 'Comercial', items: [
-    { to: '/pv',      icon: 'bi-cart-check',  label: 'Pedidos de Venda', end: false },
-    { to: '/pc',      icon: 'bi-truck',       label: 'Pedidos de Compra', end: false },
+    { to: '/pv',          icon: 'bi-cart-check',         label: 'Pedidos de Venda',   end: false },
+    { to: '/pc',          icon: 'bi-truck',              label: 'Pedidos de Compra',  end: false },
+    { to: '/recebimento', icon: 'bi-box-arrow-in-down',  label: 'Recebimento',        end: false },
   ]},
   { section: 'Relatorios', items: [
     { to: '/dashboard', icon: 'bi-bar-chart-line', label: 'Dashboard', end: false },
@@ -20,11 +22,12 @@ const NAV = [
 ]
 
 const PAGE_LABELS: Record<string, { title: string; subtitle: string }> = {
-  '/':                   { title: 'Produtos',             subtitle: 'Catalogo e estoque'         },
-  '/estoque/movimentos': { title: 'Movimentos de Estoque', subtitle: 'Historico de entradas e saidas' },
-  '/pv':        { title: 'Pedidos de Venda',  subtitle: 'Gestao de vendas'           },
-  '/pc':        { title: 'Pedidos de Compra', subtitle: 'Gestao de compras'          },
-  '/dashboard': { title: 'Dashboard',         subtitle: 'Visao gerencial'            },
+  '/':                   { title: 'Produtos',              subtitle: 'Catalogo e estoque'              },
+  '/estoque/movimentos': { title: 'Movimentos de Estoque', subtitle: 'Historico de entradas e saidas'  },
+  '/pv':          { title: 'Pedidos de Venda',   subtitle: 'Gestao de vendas'                },
+  '/pc':          { title: 'Pedidos de Compra',  subtitle: 'Gestao de compras'               },
+  '/recebimento': { title: 'Recebimento',        subtitle: 'Entrada de mercadorias'          },
+  '/dashboard':   { title: 'Dashboard',          subtitle: 'Visao gerencial'                 },
 }
 
 function Sidebar() {
@@ -111,6 +114,7 @@ export default function App() {
               <Route path="/pc"        element={<PedidosCompraPage />} />
               <Route path="/dashboard"          element={<DashboardPage />} />
               <Route path="/estoque/movimentos" element={<MovimentosEstoquePage />} />
+              <Route path="/recebimento"       element={<RecebimentoPage />} />
             </Routes>
           </main>
         </div>

@@ -82,8 +82,13 @@ Push para `main` dispara `deploy-aws.yml`:
   - **CRUD completo (03/06/2026):** Produto (criar/editar/inativar/reativar), PC/PV (criar/cancelar)
   - Endpoints GET /api/fornecedor, /api/cliente, /api/unidademedida (dropdowns)
   - Domínio: `Produto.Atualizar()`, commands Inativar/Reativar/Cancelar
+  - **Polish UX (03/06/2026):** busca por nome/SKU em Produtos, paginação nas 3 tabelas, nomes reais de Fornecedor/Cliente (`8195b46`)
+  - **ErrorHandling AMR-Core (03/06/2026):** ExceptionHandlingMiddleware + ProblemDetails RFC 7807, ResultExtensions.ToActionResult(), Swagger com 400/404/500 (`ede3e85`)
+  - **FluentValidation AMR-Core (04/06/2026):** ValidationBehavior (MediatR pipeline) + validators para CriarProduto, AtualizarProduto, CriarPedidoCompra, CriarPedidoVenda (`4dad4dc`)
+  - **Security hardening (04/06/2026):** AWS Account ID removido do deploy-aws.yml → `${{ secrets.AWS_ACCOUNT_ID }}`; .gitignore cobre appsettings.Production.json + *.env.local + terraform.tfvars; LICENSE BSL 1.1 adicionada; appsettings.Production.json removido do tracking (`164511b`)
+  - **Recebimento de Mercadorias (05/06/2026):** OrdemRecebimento + ItemRecebimento, workflow Aguardando→Recebendo→Concluido, 5 endpoints, RecebimentoPage com modal item a item (`9c60eb6`) — pendente: `dotnet ef migrations add RecebimentoMercadorias`
 - **Frontend — páginas implementadas:** `ProdutosPage`, `PedidosCompraPage`, `PedidosVendaPage`, `DashboardPage`, `MovimentosEstoquePage`
-  - Todas com modais de criação, ações de workflow e botões de edição/cancelamento
+  - Todas com modais de criação, ações de workflow, edição/cancelamento, paginação e busca
 
 ## Protocolo de Encerramento de Card
 
@@ -119,16 +124,21 @@ Executar em ordem:
 
 ## Próximo Card
 
-**🔧 Polish AMR-Core — Filtros, paginação e UX das páginas** (Sprint 6)
-- Sprint: 6 | Prioridade: Média | Status: `🔲 Backlog`
-- Sugestões: filtro por nome/SKU em Produtos, paginação nas tabelas, nome do Fornecedor/Cliente nas linhas de pedido (hoje exibe "Fornecedor 1")
+**✅ FluentValidation reusável — replicar em AMR-Financeiro e AMR-Fábrica** (Sprint 6)
+- Sprint: 6 | Prioridade: Alta | Status: `▶️ Em andamento`
+- AMR-Core ✅ concluído (`4dad4dc`) — replicar em AMR-Financeiro e AMR-Fábrica
+- Requer sessões Claude Code web com os repos `al-ramos/AMR-Financeiro` e `al-ramos/AMR-Forms-Fabrica`
+- Padrão: ValidationBehavior pipeline + validators por command + ExceptionHandlingMiddleware cobre ValidationException
+
+> **Cards concluídos nesta sessão (04/06/2026):**
+> - 🛡️ ErrorHandling ProblemDetails — AMR-Core ✅ (`ede3e85`) + AMR-Financeiro ✅ + AMR-Fábrica ✅ (sessões externas)
+> - ✅ FluentValidation AMR-Core — `4dad4dc`
 
 > **Card bloqueado (precisa de outra sessão):**
 > 📝 Documentação final — CLAUDE.md em AMR-Financeiro e AMR-Fábrica
 > - Notion: https://www.notion.so/374d35f21de58191939acf6c08a6e3e5
 > - Conteúdo pronto em `docs/CLAUDE-Financeiro.md` e `docs/CLAUDE-Fabrica.md`
 > - Requer sessões Claude Code web com os repos `al-ramos/AMR-Financeiro` e `al-ramos/AMR-Forms-Fabrica`
-> - Itens já concluídos: AMR-Fábrica re-deploy ✅, Backlog Sprint 6 ✅, Docs revisadas ✅, MovimentosEstoque ✅
 
 ---
 

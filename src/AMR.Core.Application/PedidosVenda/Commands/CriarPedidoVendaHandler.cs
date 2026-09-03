@@ -11,9 +11,6 @@ public class CriarPedidoVendaHandler(IPedidoVendaRepository repo, IUnitOfWork uo
 {
     public async Task<Result<PedidoVendaDto>> Handle(CriarPedidoVendaCommand cmd, CancellationToken ct)
     {
-        if (!cmd.Itens.Any())
-            return Result.Falha<PedidoVendaDto>("Pedido deve ter ao menos um item.");
-
         var pedido = PedidoVenda.Criar(cmd.EmpresaId, cmd.ClienteId, cmd.Observacao);
 
         foreach (var item in cmd.Itens)

@@ -16,6 +16,8 @@ public class AmrCoreDbContext(DbContextOptions<AmrCoreDbContext> options) : DbCo
     public DbSet<ItemPedidoVenda>   ItensPedidoVenda   => Set<ItemPedidoVenda>();
     public DbSet<SaldoEstoque>      SaldosEstoque      => Set<SaldoEstoque>();
     public DbSet<MovimentoEstoque>  MovimentosEstoque  => Set<MovimentoEstoque>();
+    public DbSet<OrdemRecebimento>  OrdensRecebimento  => Set<OrdemRecebimento>();
+    public DbSet<ItemRecebimento>   ItensRecebimento   => Set<ItemRecebimento>();
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
