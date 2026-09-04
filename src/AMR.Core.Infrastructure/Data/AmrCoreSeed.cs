@@ -5,13 +5,22 @@ using Microsoft.EntityFrameworkCore;
 namespace AMR.Core.Infrastructure.Data;
 
 /// <summary>
-/// Seed de dados demo para o AMR-Core.
-/// Popula: UnidadesMedida, Empresa, Clientes, Fornecedores, Produtos, PedidosVenda.
-/// Idempotente — só insere se as tabelas estiverem vazias.
+/// Seed do AMR-Core, separado em duas partes porque elas não têm o mesmo destino.
+///
+/// <see cref="AplicarReferenciaAsync"/> é dado de referência — as unidades de medida
+/// existem em qualquer instalação e não descrevem ninguém. Roda sempre.
+///
+/// <see cref="AplicarDemoAsync"/> é demonstração: empresa, clientes, fornecedores,
+/// produtos e pedidos fictícios, com CNPJ e CPF inventados. Só roda quando
+/// Seed:DadosDemo estiver ligado. Antes rodava em qualquer ambiente, o que fazia
+/// um banco de produção nascer com uma carteira de clientes que não existe.
+///
+/// As duas são idempotentes — só inserem se as tabelas estiverem vazias.
 /// </summary>
 public static class AmrCoreSeed
 {
-    public static async Task AplicarAsync(AmrCoreDbContext ctx)
+    /// <summary>Dado de referência — aplicado em todo ambiente.</summary>
+    public static async Task AplicarReferenciaAsync(AmrCoreDbContext ctx)
     {
         // ── UnidadesMedida ────────────────────────────────────────────────────
         if (!await ctx.UnidadesMedida.AnyAsync())
@@ -28,6 +37,11 @@ public static class AmrCoreSeed
             await ctx.SaveChangesAsync();
         }
 
+    }
+
+    /// <summary>Dado de demonstração — só com Seed:DadosDemo ligado.</summary>
+    public static async Task AplicarDemoAsync(AmrCoreDbContext ctx)
+    {
         var umUn = await ctx.UnidadesMedida.FirstAsync(u => u.Sigla == "UN");
         var umKg = await ctx.UnidadesMedida.FirstAsync(u => u.Sigla == "KG");
         var umL  = await ctx.UnidadesMedida.FirstAsync(u => u.Sigla == "L");

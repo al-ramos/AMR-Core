@@ -101,7 +101,17 @@ using (var scope = app.Services.CreateScope())
         await db.Database.MigrateAsync();
     }
 
-    await AmrCoreSeed.AplicarAsync(db);
+    // Dado de referencia entra sempre; demonstracao so quando pedida.
+    // Sem esse gate, um banco de producao nascia com empresa, clientes e pedidos
+    // ficticios — inclusive CNPJ inventado. Ver SEED-01.
+    await AmrCoreSeed.AplicarReferenciaAsync(db);
+
+    if (app.Configuration.GetValue<bool>("Seed:DadosDemo"))
+    {
+        await AmrCoreSeed.AplicarDemoAsync(db);
+        app.Logger.LogWarning(
+            "Seed:DadosDemo ligado — a base foi populada com dados de demonstracao ficticios.");
+    }
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
